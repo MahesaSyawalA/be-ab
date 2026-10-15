@@ -7,5 +7,6 @@ const router = Router();
 
 router.post("/", validateBody(createSquadSchema), squadsController.create);
 router.get("/", squadsController.getAll);
+router.get("/:id", squadsController.getById);
 
 export default router;

@@ -11,11 +11,35 @@ export const usersController = {
     });
   },
 
-  async getAll(_req: Request, res: Response) {
+  async getAll(req: Request, res: Response) {
+    const { id_squad } = req.query;
+
+    if (typeof id_squad === "string") {
+      const data = await userService.getBySquadId(id_squad);
+      res.status(200).json({ data });
+      return;
+    }
+
     const users = await userService.getAll();
 
     res.status(200).json({
       data: users,
+    });
+  },
+
+  async getById(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const user = await userService.getById(id);
+
+    if (!user) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      data: user,
     });
   },
 };

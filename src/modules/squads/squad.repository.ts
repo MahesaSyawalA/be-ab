@@ -13,6 +13,10 @@ export const squadRepository = {
     },
 
     async getById(id: string): Promise<Squad | undefined> {
-        return squads.find((squad) => squad.id_squad == id)
+        return squads.find((squad) => squad.id_squad === id);
+    },
+
+    async getBySupervisorId(idSupervisor: string): Promise<Squad[]> {
+        return squads.filter((squad) => squad.id_supervisor === idSupervisor);
     }
 }

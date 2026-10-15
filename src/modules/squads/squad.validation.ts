@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const createSquadSchema =  z.object({
-    id_supervisor: z.uuidv4(),
+    id_supervisor: z.uuidv4().nullable().optional(),
     nama_squad: z.string(),
     kode_squad: z.string(),
     wilayah: z.string(),

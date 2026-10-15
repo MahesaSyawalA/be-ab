@@ -1,6 +1,6 @@
 export interface Squad {
     id_squad: string;
-    id_supervisor: string;
+    id_supervisor: string | null;
     nama_squad: string;
     kode_squad: string;
     wilayah: string;
@@ -10,7 +10,7 @@ export interface Squad {
 }
 
 export interface CreateSquadInput {
-    id_supervisor: string;
+    id_supervisor?: string | null;
     nama_squad: string;
     kode_squad: string;
     wilayah: string;

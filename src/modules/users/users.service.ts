@@ -9,7 +9,7 @@ export const userService = {
         
         const user: User = {
             id_user: randomUUID(),
-            id_squad: randomUUID(),
+            id_squad: data.id_squad ?? null,
             nama: data.nama,
             role: data.role,
             email: data.email,
@@ -23,5 +23,13 @@ export const userService = {
 
     async getAll(): Promise<User[]> {
         return userRepository.getAll();
+    },
+
+    async getById(id: string): Promise<User | undefined> {
+        return userRepository.getById(id);
+    },
+
+    async getBySquadId(idSquad: string): Promise<User[]> {
+        return userRepository.getBySquadId(idSquad);
     }
 }

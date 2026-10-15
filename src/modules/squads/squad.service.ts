@@ -8,7 +8,7 @@ export const squadService = {
 
         const squad: Squad = {
             id_squad: randomUUID(),
-            id_supervisor: data.id_supervisor,
+            id_supervisor: data.id_supervisor ?? null,
             nama_squad: data.nama_squad,
             kode_squad: data.kode_squad,
             wilayah: data.wilayah,
@@ -22,5 +22,13 @@ export const squadService = {
     
     async getAll(): Promise<Squad[]> {
         return squadRepository.getAll();
+    },
+
+    async getById(id: string): Promise<Squad | undefined> {
+        return squadRepository.getById(id);
+    },
+
+    async getBySupervisorId(idSupervisor: string): Promise<Squad[]> {
+        return squadRepository.getBySupervisorId(idSupervisor);
     }
 }

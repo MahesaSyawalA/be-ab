@@ -2,7 +2,7 @@ export type UserRole = "sales" | "sales_manager" | "director";
 
 export interface User {
     id_user: string;
-    id_squad: string;
+    id_squad: string | null;
     nama: string;
     role: UserRole;
     email: string;
@@ -13,7 +13,7 @@ export interface User {
 }
 
 export interface CreateUserInput {
-    id_squad: string;
+    id_squad?: string | null;
     nama: string;
     role: UserRole;
     email: string;

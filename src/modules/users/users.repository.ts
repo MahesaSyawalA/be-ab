@@ -13,6 +13,10 @@ export const userRepository = {
     },
 
     async getById(id: string): Promise<User | undefined> {
-        return users.find((user) => user.id_user === id)
+        return users.find((user) => user.id_user === id);
+    },
+
+    async getBySquadId(idSquad: string): Promise<User[]> {
+        return users.filter((user) => user.id_squad === idSquad);
     }
 }
