@@ -39,4 +39,37 @@ export const kontakController = {
       data: kontak,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const kontak = await kontakService.update(id, req.body);
+
+    if (!kontak) {
+      res.status(404).json({
+        message: "Kontak not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Kontak updated successfully.",
+      data: kontak,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await kontakService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Kontak not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Kontak deleted successfully.",
+    });
+  },
 };

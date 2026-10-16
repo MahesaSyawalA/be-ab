@@ -7,3 +7,5 @@ export const createKontakSchema = z.object({
   no_telp: z.string(),
   email: z.email(),
 });
+
+export const updateKontakSchema = createKontakSchema.partial();

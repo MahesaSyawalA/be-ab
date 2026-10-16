@@ -10,3 +10,5 @@ export const createPenawaranSchema = z.object({
   status: z.enum(["draft", "dikirim", "disetujui", "ditolak"]),
   url_file_penawaran: z.string(),
 });
+
+export const updatePenawaranSchema = createPenawaranSchema.partial();

@@ -16,3 +16,5 @@ export const createTiketSchema = z.object({
   tanggal_closing: z.string().nullable().optional(),
   alasan_lost: z.string().nullable().optional(),
 });
+
+export const updateTiketSchema = createTiketSchema.partial();

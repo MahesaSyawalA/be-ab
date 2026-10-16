@@ -11,11 +11,11 @@ export const pelangganController = {
     });
   },
 
-  async getAll(_req: Request, res: Response) {
-    const data = await pelangganService.getAll();
+  async getAll(req: Request, res: Response) {
+    const pelanggan = await pelangganService.getAll();
 
     res.status(200).json({
-      data,
+      data: pelanggan,
     });
   },
 
@@ -32,6 +32,39 @@ export const pelangganController = {
 
     res.status(200).json({
       data: pelanggan,
+    });
+  },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const pelanggan = await pelangganService.update(id, req.body);
+
+    if (!pelanggan) {
+      res.status(404).json({
+        message: "Pelanggan not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Pelanggan updated successfully.",
+      data: pelanggan,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await pelangganService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Pelanggan not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Pelanggan deleted successfully.",
     });
   },
 };

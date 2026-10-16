@@ -1,32 +1,20 @@
-import { randomUUID } from "node:crypto";
 import { notifikasiRepository } from "./notifikasi.repository.ts";
 import type {
   Notifikasi,
   CreateNotifikasiInput,
+  UpdateNotifikasiInput,
 } from "./notifikasi.types.ts";
 
 export const notifikasiService = {
   async create(data: CreateNotifikasiInput): Promise<Notifikasi> {
-    const now_timestamptz = new Date().toISOString();
-
-    const notif: Notifikasi = {
-      id_notifikasi: randomUUID(),
-      id_tiket: data.id_tiket,
-      title: data.title,
-      isRead: data.isRead ?? false,
-      message: data.message,
-      created_at: now_timestamptz,
-      updated_at: now_timestamptz,
-    };
-
-    return notifikasiRepository.create(notif);
+    return notifikasiRepository.create(data);
   },
 
   async getAll(): Promise<Notifikasi[]> {
     return notifikasiRepository.getAll();
   },
 
-  async getById(id: string): Promise<Notifikasi | undefined> {
+  async getById(id: string): Promise<Notifikasi | null> {
     return notifikasiRepository.getById(id);
   },
 
@@ -34,7 +22,15 @@ export const notifikasiService = {
     return notifikasiRepository.getByTiketId(idTiket);
   },
 
-  async markAsRead(id: string): Promise<Notifikasi | undefined> {
+  async markAsRead(id: string): Promise<Notifikasi | null> {
     return notifikasiRepository.markAsRead(id);
+  },
+
+  async update(id: string, data: UpdateNotifikasiInput): Promise<Notifikasi | null> {
+    return notifikasiRepository.update(id, data);
+  },
+
+  async delete(id: string): Promise<Notifikasi | null> {
+    return notifikasiRepository.delete(id);
   },
 };

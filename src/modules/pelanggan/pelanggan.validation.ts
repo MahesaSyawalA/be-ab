@@ -9,3 +9,5 @@ export const createPelangganSchema = z.object({
   radius_kunjungan: z.number(),
   img_url: z.string(),
 });
+
+export const updatePelangganSchema = createPelangganSchema.partial();

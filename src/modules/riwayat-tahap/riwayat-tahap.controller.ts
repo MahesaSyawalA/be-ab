@@ -39,4 +39,37 @@ export const riwayatTahapController = {
       data: riwayat,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const riwayat = await riwayatTahapService.update(id, req.body);
+
+    if (!riwayat) {
+      res.status(404).json({
+        message: "Riwayat Tahap not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Riwayat Tahap updated successfully.",
+      data: riwayat,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await riwayatTahapService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Riwayat Tahap not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Riwayat Tahap deleted successfully.",
+    });
+  },
 };

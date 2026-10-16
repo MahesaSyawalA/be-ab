@@ -6,3 +6,5 @@ export const createNotifikasiSchema = z.object({
   isRead: z.boolean().optional(),
   message: z.string(),
 });
+
+export const updateNotifikasiSchema = createNotifikasiSchema.partial();

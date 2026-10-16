@@ -11,3 +11,5 @@ export const createPurchaseOrderSchema = z.object({
   nilai_revenue: z.number(),
   tanggal_revenue: z.string().nullable().optional(),
 });
+
+export const updatePurchaseOrderSchema = createPurchaseOrderSchema.partial();

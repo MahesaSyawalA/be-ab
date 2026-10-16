@@ -26,13 +26,13 @@ app.use("/api/tahap-kanban", tahapKanbanRoutes);
 app.use("/api/tahap_kanban", tahapKanbanRoutes);
 app.use("/api/tiket", tiketRoutes);
 app.use("/api/riwayat-tahap", riwayatTahapRoutes);
-app.use("/api/riwayat_tahap", riwayatTahapRoutes);
+// app.use("/api/riwayat_tahap", riwayatTahapRoutes);
 app.use("/api/aktivitas", aktivitasRoutes);
 app.use("/api/bukti-kunjungan", buktiKunjunganRoutes);
 app.use("/api/bukti_kunjungan", buktiKunjunganRoutes);
 app.use("/api/penawaran", penawaranRoutes);
 app.use("/api/purchase-order", purchaseOrderRoutes);
-app.use("/api/purchase_order", purchaseOrderRoutes);
+// app.use("/api/purchase_order", purchaseOrderRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
 
 export default app;

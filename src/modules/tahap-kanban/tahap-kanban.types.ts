@@ -23,3 +23,11 @@ export interface CreateTahapKanbanInput {
   is_tahap_akhir: boolean;
   is_aktif: boolean;
 }
+
+export interface UpdateTahapKanbanInput {
+  nama_tahap?: string;
+  urutan?: number;
+  jenis_tahap?: JenisTahap;
+  is_tahap_akhir?: boolean;
+  is_aktif?: boolean;
+}

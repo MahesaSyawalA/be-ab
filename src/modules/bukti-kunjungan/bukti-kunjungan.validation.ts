@@ -8,3 +8,5 @@ export const createBuktiKunjunganSchema = z.object({
   dalam_radius: z.boolean(),
   img_url: z.string(),
 });
+
+export const updateBuktiKunjunganSchema = createBuktiKunjunganSchema.partial();

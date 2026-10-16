@@ -42,4 +42,37 @@ export const squadsController = {
       data: squad,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const squad = await squadService.update(id, req.body);
+
+    if (!squad) {
+      res.status(404).json({
+        message: "Squad not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Squad updated successfully.",
+      data: squad,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await squadService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Squad not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Squad deleted successfully.",
+    });
+  },
 };

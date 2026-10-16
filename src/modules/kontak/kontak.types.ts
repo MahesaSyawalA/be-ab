@@ -5,8 +5,8 @@ export interface Kontak {
   jabatan: string;
   no_telp: string;
   email: string;
-  created_at: string;
-  updated_at: string;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 export interface CreateKontakInput {
@@ -15,4 +15,12 @@ export interface CreateKontakInput {
   jabatan: string;
   no_telp: string;
   email: string;
+}
+
+export interface UpdateKontakInput {
+  id_pelanggan?: string;
+  nama?: string;
+  jabatan?: string;
+  no_telp?: string;
+  email?: string;
 }

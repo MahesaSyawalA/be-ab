@@ -7,8 +7,8 @@ export interface Pelanggan {
   longitude: number;
   radius_kunjungan: number;
   img_url: string;
-  created_at: string;
-  updated_at: string;
+  created_at: Date | string;
+  updated_at: Date | string;
 }
 
 export interface CreatePelangganInput {
@@ -19,4 +19,14 @@ export interface CreatePelangganInput {
   longitude: number;
   radius_kunjungan: number;
   img_url: string;
+}
+
+export interface UpdatePelangganInput {
+  nama_faskes?: string;
+  tipe_faskes?: string;
+  alamat?: string;
+  latitude?: number;
+  longitude?: number;
+  radius_kunjungan?: number;
+  img_url?: string;
 }

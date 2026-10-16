@@ -57,4 +57,37 @@ export const tiketController = {
       data: tiket,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const tiket = await tiketService.update(id, req.body);
+
+    if (!tiket) {
+      res.status(404).json({
+        message: "Tiket not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tiket updated successfully.",
+      data: tiket,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await tiketService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Tiket not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tiket deleted successfully.",
+    });
+  },
 };

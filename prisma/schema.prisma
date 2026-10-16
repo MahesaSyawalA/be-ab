@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  sales
+  sales_manager
+  director
+}
+
+enum JenisTahap {
+  visit
+  kebutuhan
+  opportunity
+  follow_up
+  quotation
+  po
+  revenue
+}
+
+enum TiketStatus {
+  open
+  won
+  lost
+}
+
+enum TiketPrioritas {
+  rendah
+  sedang
+  tinggi
+}
+
+enum JenisKegiatan {
+  kunjungan
+  follow_up
+  penawaran
+  closing
+}
+
+enum StatusPenawaran {
+  draft
+  dikirim
+  disetujui
+  ditolak
+}
+
+enum StatusPurchaseOrder {
+  diterima
+  diproses
+  selesai
+  dibatalkan
+}
+
+model Squad {
+  id_squad      String   @id @default(uuid()) @db.VarChar(36)
+  id_supervisor String?  @db.VarChar(36)
+  nama_squad    String   @db.VarChar(100)
+  kode_squad    String   @unique @db.VarChar(50)
+  wilayah       String   @db.VarChar(100)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  supervisor User?  @relation("SupervisorSquads", fields: [id_supervisor], references: [id_user], onDelete: SetNull)
+  members    User[] @relation("SquadMembers")
+
+  @@map("squad")
+}
+
+model User {
+  id_user       String   @id @default(uuid()) @db.VarChar(36)
+  id_squad      String?  @db.VarChar(36)
+  nama          String   @db.VarChar(150)
+  role          UserRole
+  email         String   @unique @db.VarChar(150)
+  no_telp       String   @db.VarChar(20)
+  password_hash String   @db.VarChar(255)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  squad             Squad?         @relation("SquadMembers", fields: [id_squad], references: [id_squad], onDelete: SetNull)
+  supervised_squads Squad[]        @relation("SupervisorSquads")
+  tiket             Tiket[]
+  riwayat_tahap     RiwayatTahap[]
+  aktivitas         Aktivitas[]
+
+  @@map("user")
+}
+
+model Pelanggan {
+  id_pelanggan     String   @id @default(uuid()) @db.VarChar(36)
+  nama_faskes      String   @db.VarChar(150)
+  tipe_faskes      String   @db.VarChar(50)
+  alamat           String   @db.Text
+  latitude         Float
+  longitude        Float
+  radius_kunjungan Float
+  img_url          String   @db.Text
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  kontak Kontak[]
+  tiket  Tiket[]
+
+  @@map("pelanggan")
+}
+
+model Kontak {
+  id_kontak    String   @id @default(uuid()) @db.VarChar(36)
+  id_pelanggan String   @db.VarChar(36)
+  nama         String   @db.VarChar(150)
+  jabatan      String   @db.VarChar(100)
+  no_telp      String   @db.VarChar(20)
+  email        String   @db.VarChar(150)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  pelanggan Pelanggan @relation(fields: [id_pelanggan], references: [id_pelanggan], onDelete: Cascade)
+  tiket     Tiket[]
+
+  @@map("kontak")
+}
+
+model TahapKanban {
+  id_tahap       String     @id @default(uuid()) @db.VarChar(36)
+  nama_tahap     String     @db.VarChar(100)
+  urutan         Int
+  jenis_tahap    JenisTahap
+  is_tahap_akhir Boolean    @default(false)
+  is_aktif       Boolean    @default(true)
+
+  tiket          Tiket[]
+  riwayat_asal   RiwayatTahap[] @relation("TahapAsal")
+  riwayat_tujuan RiwayatTahap[] @relation("TahapTujuan")
+
+  @@map("tahap_kanban")
+}
+
+model Tiket {
+  id_tiket               String         @id @default(uuid()) @db.VarChar(36)
+  id_pelanggan           String         @db.VarChar(36)
+  id_user                String         @db.VarChar(36)
+  id_tahap               String         @db.VarChar(36)
+  id_kontak              String?        @db.VarChar(36)
+  judul                  String         @db.VarChar(200)
+  estimasi_nilai         Float
+  estimasi_closing       DateTime
+  status                 TiketStatus
+  kebutuhan_pelanggan    String         @db.Text
+  prioritas              TiketPrioritas
+  posisi                 Int
+  tanggal_penawaran_awal DateTime?
+  tanggal_closing        DateTime?
+  alasan_lost            String?        @db.Text
+  created_at             DateTime       @default(now())
+  updated_at             DateTime       @updatedAt
+
+  pelanggan      Pelanggan       @relation(fields: [id_pelanggan], references: [id_pelanggan], onDelete: Cascade)
+  user           User            @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  tahap          TahapKanban     @relation(fields: [id_tahap], references: [id_tahap], onDelete: Restrict)
+  kontak         Kontak?         @relation(fields: [id_kontak], references: [id_kontak], onDelete: SetNull)
+  riwayat_tahap  RiwayatTahap[]
+  aktivitas      Aktivitas[]
+  penawaran      Penawaran[]
+  purchase_order PurchaseOrder[]
+  notifikasi     Notifikasi[]
+
+  @@map("tiket")
+}
+
+model RiwayatTahap {
+  id_riwayat      String   @id @default(uuid()) @db.VarChar(36)
+  id_tiket        String   @db.VarChar(36)
+  id_tahap_asal   String?  @db.VarChar(36)
+  id_tahap_tujuan String   @db.VarChar(36)
+  id_user         String   @db.VarChar(36)
+  waktu_pindah    DateTime @default(now())
+
+  tiket        Tiket        @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+  tahap_asal   TahapKanban? @relation("TahapAsal", fields: [id_tahap_asal], references: [id_tahap], onDelete: SetNull)
+  tahap_tujuan TahapKanban  @relation("TahapTujuan", fields: [id_tahap_tujuan], references: [id_tahap], onDelete: Restrict)
+  user         User         @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+
+  @@map("riwayat_tahap")
+}
+
+model Aktivitas {
+  id_aktivitas     String        @id @default(uuid()) @db.VarChar(36)
+  id_user          String        @db.VarChar(36)
+  id_tiket         String        @db.VarChar(36)
+  tanggal          DateTime
+  catatan          String        @db.Text
+  jenis_kegiatan   JenisKegiatan
+  jadwal_follow_up DateTime?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+
+  user            User             @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  tiket           Tiket            @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+  bukti_kunjungan BuktiKunjungan[]
+  penawaran       Penawaran[]
+
+  @@map("aktivitas")
+}
+
+model BuktiKunjungan {
+  id_bukti     String   @id @default(uuid()) @db.VarChar(36)
+  id_aktivitas String   @db.VarChar(36)
+  longitude    Float
+  latitude     Float
+  jarak_klien  Float
+  dalam_radius Boolean
+  img_url      String   @db.Text
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  aktivitas Aktivitas @relation(fields: [id_aktivitas], references: [id_aktivitas], onDelete: Cascade)
+
+  @@map("bukti_kunjungan")
+}
+
+model Penawaran {
+  id_penawaran       String          @id @default(uuid()) @db.VarChar(36)
+  id_tiket           String          @db.VarChar(36)
+  id_aktivitas       String?         @db.VarChar(36)
+  no_penawaran       String          @unique @db.VarChar(100)
+  revisi_ke          Int             @default(0)
+  tanggal_penawaran  DateTime
+  total_nilai        Float
+  status             StatusPenawaran
+  url_file_penawaran String          @db.Text
+  created_at         DateTime        @default(now())
+  updated_at         DateTime        @updatedAt
+
+  tiket          Tiket           @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+  aktivitas      Aktivitas?      @relation(fields: [id_aktivitas], references: [id_aktivitas], onDelete: SetNull)
+  purchase_order PurchaseOrder[]
+
+  @@map("penawaran")
+}
+
+model PurchaseOrder {
+  id_po           String              @id @default(uuid()) @db.VarChar(36)
+  id_penawaran    String?             @db.VarChar(36)
+  id_tiket        String              @db.VarChar(36)
+  no_po           String              @unique @db.VarChar(100)
+  tanggal_po      DateTime
+  nilai_po        Float
+  status          StatusPurchaseOrder
+  url_file_po     String              @db.Text
+  nilai_revenue   Float
+  tanggal_revenue DateTime?
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+
+  penawaran Penawaran? @relation(fields: [id_penawaran], references: [id_penawaran], onDelete: SetNull)
+  tiket     Tiket      @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+
+  @@map("purchase_order")
+}
+
+model Notifikasi {
+  id_notifikasi String   @id @default(uuid()) @db.VarChar(36)
+  id_tiket      String   @db.VarChar(36)
+  title         String   @db.VarChar(150)
+  isRead        Boolean  @default(false) @map("is_read")
+  message       String   @db.Text
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  tiket Tiket @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+
+  @@map("notifikasi")
+}

@@ -13,3 +13,5 @@ export const createAktivitasSchema = z.object({
   ]),
   jadwal_follow_up: z.string().nullable().optional(),
 });
+
+export const updateAktivitasSchema = createAktivitasSchema.partial();

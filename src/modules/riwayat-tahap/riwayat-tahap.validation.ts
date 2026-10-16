@@ -7,3 +7,5 @@ export const createRiwayatTahapSchema = z.object({
   id_user: z.uuidv4(),
   waktu_pindah: z.string().optional(),
 });
+
+export const updateRiwayatTahapSchema = createRiwayatTahapSchema.partial();

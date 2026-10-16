@@ -15,3 +15,5 @@ export const createTahapKanbanSchema = z.object({
   is_tahap_akhir: z.boolean(),
   is_aktif: z.boolean(),
 });
+
+export const updateTahapKanbanSchema = createTahapKanbanSchema.partial();

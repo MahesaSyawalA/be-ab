@@ -34,4 +34,37 @@ export const tahapKanbanController = {
       data: tahap,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const tahap = await tahapKanbanService.update(id, req.body);
+
+    if (!tahap) {
+      res.status(404).json({
+        message: "Tahap Kanban not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tahap Kanban updated successfully.",
+      data: tahap,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await tahapKanbanService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Tahap Kanban not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Tahap Kanban deleted successfully.",
+    });
+  },
 };

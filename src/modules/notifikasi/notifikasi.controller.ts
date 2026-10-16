@@ -56,4 +56,37 @@ export const notifikasiController = {
       data: notifikasi,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const notifikasi = await notifikasiService.update(id, req.body);
+
+    if (!notifikasi) {
+      res.status(404).json({
+        message: "Notifikasi not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Notifikasi updated successfully.",
+      data: notifikasi,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await notifikasiService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Notifikasi not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Notifikasi deleted successfully.",
+    });
+  },
 };

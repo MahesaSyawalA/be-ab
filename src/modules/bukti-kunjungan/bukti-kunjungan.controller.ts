@@ -39,4 +39,37 @@ export const buktiKunjunganController = {
       data: bukti,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const bukti = await buktiKunjunganService.update(id, req.body);
+
+    if (!bukti) {
+      res.status(404).json({
+        message: "Bukti Kunjungan not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Bukti Kunjungan updated successfully.",
+      data: bukti,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await buktiKunjunganService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Bukti Kunjungan not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Bukti Kunjungan deleted successfully.",
+    });
+  },
 };

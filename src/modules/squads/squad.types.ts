@@ -5,8 +5,8 @@ export interface Squad {
     kode_squad: string;
     wilayah: string;
     is_active: boolean;
-    created_at: string;
-    updated_at: string;
+    created_at: Date | string;
+    updated_at: Date | string;
 }
 
 export interface CreateSquadInput {
@@ -15,4 +15,12 @@ export interface CreateSquadInput {
     kode_squad: string;
     wilayah: string;
     is_active: boolean;
+}
+
+export interface UpdateSquadInput {
+    id_supervisor?: string | null;
+    nama_squad?: string;
+    kode_squad?: string;
+    wilayah?: string;
+    is_active?: boolean;
 }

@@ -45,4 +45,37 @@ export const aktivitasController = {
       data: aktivitas,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const aktivitas = await aktivitasService.update(id, req.body);
+
+    if (!aktivitas) {
+      res.status(404).json({
+        message: "Aktivitas not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Aktivitas updated successfully.",
+      data: aktivitas,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await aktivitasService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "Aktivitas not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Aktivitas deleted successfully.",
+    });
+  },
 };

@@ -1,35 +1,28 @@
-import { randomUUID } from "node:crypto";
 import { userRepository } from "./users.repository.ts";
-import type { User, CreateUserInput } from "./users.types.ts";
+import type { User, CreateUserInput, UpdateUserInput } from "./users.types.ts";
 
 export const userService = {
     async create(data: CreateUserInput): Promise<User> {
-        
-        const now_timestamptz = new Date().toISOString();
-        
-        const user: User = {
-            id_user: randomUUID(),
-            id_squad: data.id_squad ?? null,
-            nama: data.nama,
-            role: data.role,
-            email: data.email,
-            no_telp: data.no_telp,
-            password_hash: data.password_hash,
-            created_at: now_timestamptz,
-            updated_at: now_timestamptz,
-        }
-        return userRepository.create(user);
+        return userRepository.create(data);
     },
 
     async getAll(): Promise<User[]> {
         return userRepository.getAll();
     },
 
-    async getById(id: string): Promise<User | undefined> {
+    async getById(id: string): Promise<User | null> {
         return userRepository.getById(id);
     },
 
     async getBySquadId(idSquad: string): Promise<User[]> {
         return userRepository.getBySquadId(idSquad);
-    }
-}
+    },
+
+    async update(id: string, data: UpdateUserInput): Promise<User | null> {
+        return userRepository.update(id, data);
+    },
+
+    async delete(id: string): Promise<User | null> {
+        return userRepository.delete(id);
+    },
+};

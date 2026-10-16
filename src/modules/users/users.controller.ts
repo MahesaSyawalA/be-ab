@@ -42,4 +42,37 @@ export const usersController = {
       data: user,
     });
   },
+
+  async update(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const user = await userService.update(id, req.body);
+
+    if (!user) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "User updated successfully.",
+      data: user,
+    });
+  },
+
+  async delete(req: Request, res: Response) {
+    const id = req.params.id as string;
+    const deleted = await userService.delete(id);
+
+    if (!deleted) {
+      res.status(404).json({
+        message: "User not found.",
+      });
+      return;
+    }
+
+    res.status(200).json({
+      message: "User deleted successfully.",
+    });
+  },
 };
