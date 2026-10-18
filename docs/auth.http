@@ -1,0 +1,122 @@
+### Auth API — uji manual (VS Code REST Client)
+### Cookie disimpan otomatis oleh REST Client antar request.
+### Jalankan: npm run dev  (dan `npm run seed` sekali untuk membuat akun dummy)
+###
+### Akun dummy hasil `npm run seed` (password semuanya: rahasia123)
+###   sales@ab-medical.local     role: sales
+###   manager@ab-medical.local   role: sales_manager
+###   director@ab-medical.local  role: director
+
+@baseUrl = http://localhost:3000
+@email = sales@ab-medical.local
+@password = rahasia123
+@foreignOrigin = http://evil.example
+
+### ============================================================
+### Autentikasi
+### ============================================================
+
+### 1. Login — harus 200, Set-Cookie berisi access_token + refresh_token
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 2. Profil user aktif — harus 200, tanpa password_hash
+GET {{baseUrl}}/api/auth/me
+
+### 3. Rotasi token — harus 200 dan nilai kedua cookie berubah
+POST {{baseUrl}}/api/auth/refresh
+
+### 4. Logout — harus 200 dan kedua cookie terhapus
+POST {{baseUrl}}/api/auth/logout
+
+### 5. /me setelah logout — harus 401
+GET {{baseUrl}}/api/auth/me
+
+### 6. Password salah — harus 401 "Email atau password salah."
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "password-salah"
+}
+
+### 7. Email tidak terdaftar — pesan & waktu respons harus sama dengan #6
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tidak.ada@ab-medical.local",
+  "password": "{{password}}"
+}
+
+### 8. Body tidak valid — harus 400
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "bukan-email",
+  "password": ""
+}
+
+### ============================================================
+### Rate limit & CSRF
+### ============================================================
+
+### 9. Jalankan request ini 11x berturut-turut — ke-11 harus 429
+#    "Terlalu banyak percobaan. Coba lagi nanti."
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "pemicu-rate-limit"
+}
+
+### 10. Origin asing pada request mutasi — harus 403 "Origin tidak diizinkan."
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+Origin: {{foreignOrigin}}
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+### 11. GET dengan Origin asing — harus tetap 200 (bukan mutasi)
+GET {{baseUrl}}/api/users
+Origin: {{foreignOrigin}}
+
+### ============================================================
+### Modul users — hashing password
+### ============================================================
+
+### 12. Buat user — harus 201, response TIDAK memuat password_hash/password
+POST {{baseUrl}}/api/users
+Content-Type: application/json
+
+{
+  "nama": "Sales Contoh",
+  "role": "sales",
+  "email": "sales.contoh@ab-medical.local",
+  "no_telp": "081234567890",
+  "password": "rahasia123"
+}
+
+### 13. Daftar user — tidak boleh ada password_hash di mana pun
+GET {{baseUrl}}/api/users
+
+### 14. Ganti password — setelah ini password lama harus 401, password baru 200
+###     Ganti {{id_user}} dengan id dari respons #12, atau pakai akun seed.
+PATCH {{baseUrl}}/api/users/{{id_user}}
+Content-Type: application/json
+
+{
+  "password": "password-baru-456"
+}

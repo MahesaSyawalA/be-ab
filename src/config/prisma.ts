@@ -1,9 +1,7 @@
-import "dotenv/config";
+import { env } from "./env.ts";
 import { PrismaClient } from "@prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import mariadb, { type PoolConfig } from "mariadb";
-
-const databaseUrl = process.env.DATABASE_URL || "mysql://root:@127.0.0.1:3306/salestracking_db";
 
 function getPoolConfig(urlStr: string): PoolConfig {
   try {
@@ -28,7 +26,9 @@ function getPoolConfig(urlStr: string): PoolConfig {
   }
 }
 
-const pool = mariadb.createPool(getPoolConfig(databaseUrl));
+const pool = mariadb.createPool(getPoolConfig(env.databaseUrl));
 const adapter = new PrismaMariaDb(pool);
 
 export const prisma = new PrismaClient({ adapter });
+
+export const prismaPool = pool;
