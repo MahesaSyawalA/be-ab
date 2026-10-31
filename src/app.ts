@@ -19,10 +19,8 @@ import notifikasiRoutes from "./modules/notifikasi/notifikasi.routes.ts";
 
 const app = express();
 
-// Wajib di-set agar rate limit membaca IP asli saat di belakang reverse proxy.
 app.set("trust proxy", env.trustProxy);
 
-// `origin` harus origin spesifik (bukan "*") supaya cookie bisa dikirim.
 app.use(
   cors({
     origin: env.corsOrigins,
@@ -31,8 +29,6 @@ app.use(
 );
 
 app.use(express.json());
-
-// Pertahanan CSRF dasar untuk seluruh request mutasi.
 app.use(checkOrigin);
 
 // Routes
@@ -46,16 +42,12 @@ app.use("/api/tahap-kanban", tahapKanbanRoutes);
 app.use("/api/tahap_kanban", tahapKanbanRoutes);
 app.use("/api/tiket", tiketRoutes);
 app.use("/api/riwayat-tahap", riwayatTahapRoutes);
-// app.use("/api/riwayat_tahap", riwayatTahapRoutes);
 app.use("/api/aktivitas", aktivitasRoutes);
 app.use("/api/bukti-kunjungan", buktiKunjunganRoutes);
 app.use("/api/bukti_kunjungan", buktiKunjunganRoutes);
 app.use("/api/penawaran", penawaranRoutes);
 app.use("/api/purchase-order", purchaseOrderRoutes);
-// app.use("/api/purchase_order", purchaseOrderRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
-
-// Error handler harus didaftarkan paling akhir
 app.use(errorHandler);
 
 export default app;
