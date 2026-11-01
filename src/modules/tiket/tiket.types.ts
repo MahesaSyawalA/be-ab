@@ -1,3 +1,14 @@
+import type {
+  Aktivitas,
+  AktivitasWithDetails,
+  EvidenceItem,
+  JenisEvidence,
+} from "../aktivitas/aktivitas.types.ts";
+import type {
+  RiwayatTahap,
+  RiwayatTahapWithDetails,
+} from "../riwayat-tahap/riwayat-tahap.types.ts";
+
 export type TiketStatus = "open" | "won" | "lost";
 export type TiketPrioritas = "rendah" | "sedang" | "tinggi";
 
@@ -19,6 +30,33 @@ export interface Tiket {
   alasan_lost: string | null;
   created_at: Date | string;
   updated_at: Date | string;
+}
+
+export type { JenisEvidence, EvidenceItem, AktivitasWithDetails, RiwayatTahapWithDetails };
+
+export interface TiketWithDetails extends Tiket {
+  kode_tiket: string;
+  nama_faskes: string;
+  nama_pic?: string;
+  jabatan_pic?: string;
+  no_telp_pic?: string;
+  nama_sales?: string;
+  inisial_sales?: string;
+  closing_short_label?: string;
+  closing_full_label?: string;
+  file_penawaran?: {
+    name: string;
+    size: string;
+  } | null;
+  aktivitas_list?: AktivitasWithDetails[];
+  riwayat_list?: RiwayatTahapWithDetails[];
+}
+
+export interface TeamContributionItem {
+  id: string;
+  name: string;
+  valueLabel: string;
+  ticketsLabel: string;
 }
 
 export interface CreateTiketInput {

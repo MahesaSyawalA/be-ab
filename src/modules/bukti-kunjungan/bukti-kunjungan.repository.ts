@@ -7,6 +7,7 @@ import type {
 
 export const buktiKunjunganRepository = {
   async create(data: CreateBuktiKunjunganInput): Promise<BuktiKunjungan> {
+    const img_url = data.img_url || data.file_url || "";
     return prisma.buktiKunjungan.create({
       data: {
         id_aktivitas: data.id_aktivitas,
@@ -14,7 +15,7 @@ export const buktiKunjunganRepository = {
         latitude: data.latitude,
         jarak_klien: data.jarak_klien,
         dalam_radius: data.dalam_radius,
-        img_url: data.img_url,
+        img_url,
       },
     });
   },
@@ -42,9 +43,15 @@ export const buktiKunjunganRepository = {
     const existing = await prisma.buktiKunjungan.findUnique({ where: { id_bukti: id } });
     if (!existing) return null;
 
+    const { file_url, ...rest } = data;
+    const updatePayload: Record<string, unknown> = { ...rest };
+    if (data.img_url || file_url) {
+      updatePayload.img_url = data.img_url ?? file_url;
+    }
+
     return prisma.buktiKunjungan.update({
       where: { id_bukti: id },
-      data,
+      data: updatePayload,
     });
   },
 

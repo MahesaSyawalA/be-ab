@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 export const createBuktiKunjunganSchema = z.object({
-  id_aktivitas: z.uuidv4(),
-  longitude: z.number(),
-  latitude: z.number(),
-  jarak_klien: z.number(),
-  dalam_radius: z.boolean(),
-  img_url: z.string(),
+  id_aktivitas: z.uuid({ message: "ID Aktivitas tidak valid atau belum dipilih" }),
+  longitude: z.coerce.number({ message: "Longitude harus berupa angka" }),
+  latitude: z.coerce.number({ message: "Latitude harus berupa angka" }),
+  jarak_klien: z.coerce.number({ message: "Jarak harus berupa angka" }),
+  dalam_radius: z.boolean({ message: "Status radius wajib diisi dengan format yang benar" }),
+  img_url: z.string().min(1, { message: "Bukti foto kunjungan wajib diupload" }),
+  file_url: z.string().optional(),
 });
 
 export const updateBuktiKunjunganSchema = createBuktiKunjunganSchema.partial();

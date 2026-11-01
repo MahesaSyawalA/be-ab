@@ -14,6 +14,11 @@ export interface TahapKanban {
   jenis_tahap: JenisTahap;
   is_tahap_akhir: boolean;
   is_aktif: boolean;
+  dotColor?: string;
+}
+
+export interface KanbanStageColumn extends TahapKanban {
+  dotColor: string;
 }
 
 export interface CreateTahapKanbanInput {
@@ -22,6 +27,7 @@ export interface CreateTahapKanbanInput {
   jenis_tahap: JenisTahap;
   is_tahap_akhir: boolean;
   is_aktif: boolean;
+  dotColor?: string;
 }
 
 export interface UpdateTahapKanbanInput {
@@ -30,4 +36,5 @@ export interface UpdateTahapKanbanInput {
   jenis_tahap?: JenisTahap;
   is_tahap_akhir?: boolean;
   is_aktif?: boolean;
+  dotColor?: string;
 }

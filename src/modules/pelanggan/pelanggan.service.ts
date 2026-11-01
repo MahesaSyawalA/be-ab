@@ -1,16 +1,21 @@
 import { pelangganRepository } from "./pelanggan.repository.ts";
-import type { Pelanggan, CreatePelangganInput, UpdatePelangganInput } from "./pelanggan.types.ts";
+import type {
+  Pelanggan,
+  PelangganWithDetails,
+  CreatePelangganInput,
+  UpdatePelangganInput,
+} from "./pelanggan.types.ts";
 
 export const pelangganService = {
-  async create(data: CreatePelangganInput): Promise<Pelanggan> {
+  async create(data: CreatePelangganInput): Promise<PelangganWithDetails> {
     return pelangganRepository.create(data);
   },
 
-  async getAll(): Promise<Pelanggan[]> {
+  async getAll(): Promise<PelangganWithDetails[]> {
     return pelangganRepository.getAll();
   },
 
-  async getById(id: string): Promise<Pelanggan | null> {
+  async getById(id: string): Promise<PelangganWithDetails | null> {
     return pelangganRepository.getById(id);
   },
 

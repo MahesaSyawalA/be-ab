@@ -1,14 +1,16 @@
 import { z } from "zod";
 
 export const createPenawaranSchema = z.object({
-  id_tiket: z.uuidv4(),
-  id_aktivitas: z.uuidv4().nullable().optional(),
-  no_penawaran: z.string(),
-  revisi_ke: z.number().int(),
-  tanggal_penawaran: z.string(),
-  total_nilai: z.number(),
-  status: z.enum(["draft", "dikirim", "disetujui", "ditolak"]),
-  url_file_penawaran: z.string(),
+  id_tiket: z.uuid({ message: "ID Tiket tidak valid atau belum dipilih" }),
+  id_aktivitas: z.uuid({ message: "ID Aktivitas tidak valid" }).nullable().optional(),
+  no_penawaran: z.string().min(1, { message: "Nomor penawaran wajib diisi" }),
+  revisi_ke: z.coerce.number({ message: "Revisi harus berupa angka" }).int({ message: "Revisi harus berupa bilangan bulat" }),
+  tanggal_penawaran: z.string().min(1, { message: "Tanggal penawaran wajib diisi" }),
+  total_nilai: z.coerce.number({ message: "Total nilai harus berupa angka" }),
+  status: z.enum(["draft", "dikirim", "disetujui", "ditolak"], {
+    message: "Pilih status penawaran yang valid",
+  }),
+  url_file_penawaran: z.string().min(1, { message: "File penawaran wajib diupload" }),
 });
 
 export const updatePenawaranSchema = createPenawaranSchema.partial();
