@@ -35,10 +35,23 @@ enum TiketPrioritas {
 }
 
 enum JenisKegiatan {
-  kunjungan
+  visit
+  kebutuhan
+  opportunity
   follow_up
+  quotation
+  po
+  revenue
+  kunjungan
   penawaran
   closing
+}
+
+enum JenisEvidence {
+  foto
+  audio
+  dokumen
+  teks
 }
 
 enum StatusPenawaran {
@@ -53,6 +66,12 @@ enum StatusPurchaseOrder {
   diproses
   selesai
   dibatalkan
+}
+
+enum StatusPelanggan {
+  Aktif
+  Nonaktif
+  Prospek
 }
 
 model Squad {
@@ -92,16 +111,17 @@ model User {
 }
 
 model Pelanggan {
-  id_pelanggan     String   @id @default(uuid()) @db.VarChar(36)
-  nama_faskes      String   @db.VarChar(150)
-  tipe_faskes      String   @db.VarChar(50)
-  alamat           String   @db.Text
+  id_pelanggan     String          @id @default(uuid()) @db.VarChar(36)
+  nama_outlet      String          @db.VarChar(150)
+  tipe_outlet      String          @db.VarChar(50)
+  alamat           String          @db.Text
   latitude         Float
   longitude        Float
   radius_kunjungan Float
-  img_url          String   @db.Text
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  img_url          String          @db.Text
+  status           StatusPelanggan @default(Prospek)
+  created_at       DateTime        @default(now())
+  updated_at       DateTime        @updatedAt
 
   kontak Kontak[]
   tiket  Tiket[]
@@ -110,14 +130,16 @@ model Pelanggan {
 }
 
 model Kontak {
-  id_kontak    String   @id @default(uuid()) @db.VarChar(36)
-  id_pelanggan String   @db.VarChar(36)
-  nama         String   @db.VarChar(150)
-  jabatan      String   @db.VarChar(100)
-  no_telp      String   @db.VarChar(20)
-  email        String   @db.VarChar(150)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  id_kontak      String   @id @default(uuid()) @db.VarChar(36)
+  id_pelanggan   String   @db.VarChar(36)
+  nama           String   @db.VarChar(150)
+  jabatan        String   @db.VarChar(100)
+  no_telp        String   @db.VarChar(20)
+  email          String   @db.VarChar(150)
+  kategori_peran String?  @db.VarChar(50)
+  inisial        String?  @db.VarChar(10)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
 
   pelanggan Pelanggan @relation(fields: [id_pelanggan], references: [id_pelanggan], onDelete: Cascade)
   tiket     Tiket[]
@@ -132,6 +154,7 @@ model TahapKanban {
   jenis_tahap    JenisTahap
   is_tahap_akhir Boolean    @default(false)
   is_aktif       Boolean    @default(true)
+  dot_color      String?    @db.VarChar(50)
 
   tiket          Tiket[]
   riwayat_asal   RiwayatTahap[] @relation("TahapAsal")
@@ -202,9 +225,28 @@ model Aktivitas {
   user            User             @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
   tiket           Tiket            @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
   bukti_kunjungan BuktiKunjungan[]
+  evidence        Evidence[]
   penawaran       Penawaran[]
 
   @@map("aktivitas")
+}
+
+model Evidence {
+  id           String        @id @default(uuid()) @db.VarChar(36)
+  id_aktivitas String        @db.VarChar(36)
+  tipe         JenisEvidence
+  nama_file    String?       @db.VarChar(255)
+  ukuran_file  String?       @db.VarChar(50)
+  durasi_audio String?       @db.VarChar(50)
+  deskripsi    String        @db.Text
+  catatan      String?       @db.Text
+  url_file     String?       @db.Text
+  url_preview  String?       @db.Text
+  waktu_upload DateTime?
+
+  aktivitas Aktivitas @relation(fields: [id_aktivitas], references: [id_aktivitas], onDelete: Cascade)
+
+  @@map("evidence")
 }
 
 model BuktiKunjungan {
@@ -215,6 +257,7 @@ model BuktiKunjungan {
   jarak_klien  Float
   dalam_radius Boolean
   img_url      String   @db.Text
+  file_url     String?  @db.Text
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
 

@@ -14,6 +14,7 @@ export const tahapKanbanRepository = {
         jenis_tahap: data.jenis_tahap,
         is_tahap_akhir: data.is_tahap_akhir,
         is_aktif: data.is_aktif,
+        dot_color: data.dotColor,
       },
     });
   },
@@ -30,8 +31,13 @@ export const tahapKanbanRepository = {
     });
   },
 
-  async update(id: string, data: UpdateTahapKanbanInput): Promise<TahapKanban | null> {
-    const existing = await prisma.tahapKanban.findUnique({ where: { id_tahap: id } });
+  async update(
+    id: string,
+    data: UpdateTahapKanbanInput,
+  ): Promise<TahapKanban | null> {
+    const existing = await prisma.tahapKanban.findUnique({
+      where: { id_tahap: id },
+    });
     if (!existing) return null;
 
     return prisma.tahapKanban.update({
@@ -41,7 +47,9 @@ export const tahapKanbanRepository = {
   },
 
   async delete(id: string): Promise<TahapKanban | null> {
-    const existing = await prisma.tahapKanban.findUnique({ where: { id_tahap: id } });
+    const existing = await prisma.tahapKanban.findUnique({
+      where: { id_tahap: id },
+    });
     if (!existing) return null;
 
     return prisma.tahapKanban.delete({

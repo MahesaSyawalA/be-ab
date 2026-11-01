@@ -1,5 +1,9 @@
-import { prisma } from "../../config/prisma.ts";
-import type { Kontak, CreateKontakInput, UpdateKontakInput } from "./kontak.types.ts";
+﻿import { prisma } from "../../config/prisma.ts";
+import type {
+  Kontak,
+  CreateKontakInput,
+  UpdateKontakInput,
+} from "./kontak.types.ts";
 
 export const kontakRepository = {
   async create(data: CreateKontakInput): Promise<Kontak> {
@@ -10,6 +14,8 @@ export const kontakRepository = {
         jabatan: data.jabatan,
         no_telp: data.no_telp,
         email: data.email,
+        kategori_peran: data.kategori_peran ?? null,
+        inisial: data.inisial ?? null,
       },
     });
   },
@@ -38,7 +44,15 @@ export const kontakRepository = {
 
     return prisma.kontak.update({
       where: { id_kontak: id },
-      data,
+      data: {
+        ...(data.id_pelanggan !== undefined && { id_pelanggan: data.id_pelanggan }),
+        ...(data.nama !== undefined && { nama: data.nama }),
+        ...(data.jabatan !== undefined && { jabatan: data.jabatan }),
+        ...(data.no_telp !== undefined && { no_telp: data.no_telp }),
+        ...(data.email !== undefined && { email: data.email }),
+        ...(data.kategori_peran !== undefined && { kategori_peran: data.kategori_peran }),
+        ...(data.inisial !== undefined && { inisial: data.inisial }),
+      },
     });
   },
 

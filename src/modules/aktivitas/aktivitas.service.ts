@@ -1,4 +1,4 @@
-import { aktivitasRepository } from "./aktivitas.repository.ts";
+﻿import { aktivitasRepository } from "./aktivitas.repository.ts";
 import type {
   Aktivitas,
   CreateAktivitasInput,
@@ -14,7 +14,7 @@ export const aktivitasService = {
     return aktivitasRepository.getAll();
   },
 
-  async getById(id: string): Promise<Aktivitas | null> {
+  async getById(id: string) {
     return aktivitasRepository.getById(id);
   },
 
@@ -22,11 +22,14 @@ export const aktivitasService = {
     return aktivitasRepository.getByUserId(idUser);
   },
 
-  async getByTiketId(idTiket: string): Promise<Aktivitas[]> {
+  async getByTiketId(idTiket: string) {
     return aktivitasRepository.getByTiketId(idTiket);
   },
 
-  async update(id: string, data: UpdateAktivitasInput): Promise<Aktivitas | null> {
+  async update(
+    id: string,
+    data: UpdateAktivitasInput,
+  ): Promise<Aktivitas | null> {
     return aktivitasRepository.update(id, data);
   },
 

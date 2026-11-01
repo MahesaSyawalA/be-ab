@@ -32,11 +32,16 @@ export interface Tiket {
   updated_at: Date | string;
 }
 
-export type { JenisEvidence, EvidenceItem, AktivitasWithDetails, RiwayatTahapWithDetails };
+export type {
+  JenisEvidence,
+  EvidenceItem,
+  AktivitasWithDetails,
+  RiwayatTahapWithDetails,
+};
 
 export interface TiketWithDetails extends Tiket {
   kode_tiket: string;
-  nama_faskes: string;
+  nama_outlet: string;
   nama_pic?: string;
   jabatan_pic?: string;
   no_telp_pic?: string;

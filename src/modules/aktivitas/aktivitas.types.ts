@@ -1,16 +1,16 @@
-export type JenisKegiatan =
-  | 'visit'
-  | 'kebutuhan'
-  | 'opportunity'
-  | 'follow_up'
-  | 'quotation'
-  | 'po'
-  | 'revenue'
-  | 'kunjungan'
-  | 'penawaran'
-  | 'closing';
+﻿export type JenisKegiatan =
+  | "visit"
+  | "kebutuhan"
+  | "opportunity"
+  | "follow_up"
+  | "quotation"
+  | "po"
+  | "revenue"
+  | "kunjungan"
+  | "penawaran"
+  | "closing";
 
-export type JenisEvidence = 'foto' | 'audio' | 'dokumen' | 'teks';
+export type JenisEvidence = "foto" | "audio" | "dokumen" | "teks";
 
 export interface EvidenceItem {
   id?: string;
@@ -23,7 +23,6 @@ export interface EvidenceItem {
   jenis?: JenisEvidence;
   waktu_upload?: string;
   file_size?: string;
-  durasi_detik?: number;
   catatan?: string;
   url_file?: string;
 }

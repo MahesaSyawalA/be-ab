@@ -32,13 +32,14 @@ CREATE TABLE `user` (
 -- CreateTable
 CREATE TABLE `pelanggan` (
     `id_pelanggan` VARCHAR(36) NOT NULL,
-    `nama_faskes` VARCHAR(150) NOT NULL,
-    `tipe_faskes` VARCHAR(50) NOT NULL,
+    `nama_outlet` VARCHAR(150) NOT NULL,
+    `tipe_outlet` VARCHAR(50) NOT NULL,
     `alamat` TEXT NOT NULL,
     `latitude` DOUBLE NOT NULL,
     `longitude` DOUBLE NOT NULL,
     `radius_kunjungan` DOUBLE NOT NULL,
     `img_url` TEXT NOT NULL,
+    `status` ENUM('Aktif', 'Nonaktif', 'Prospek') NOT NULL DEFAULT 'Prospek',
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -53,6 +54,8 @@ CREATE TABLE `kontak` (
     `jabatan` VARCHAR(100) NOT NULL,
     `no_telp` VARCHAR(20) NOT NULL,
     `email` VARCHAR(150) NOT NULL,
+    `kategori_peran` VARCHAR(50) NULL,
+    `inisial` VARCHAR(10) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -67,6 +70,7 @@ CREATE TABLE `tahap_kanban` (
     `jenis_tahap` ENUM('visit', 'kebutuhan', 'opportunity', 'follow_up', 'quotation', 'po', 'revenue') NOT NULL,
     `is_tahap_akhir` BOOLEAN NOT NULL DEFAULT false,
     `is_aktif` BOOLEAN NOT NULL DEFAULT true,
+    `dot_color` VARCHAR(50) NULL,
 
     PRIMARY KEY (`id_tahap`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -113,12 +117,29 @@ CREATE TABLE `aktivitas` (
     `id_tiket` VARCHAR(36) NOT NULL,
     `tanggal` DATETIME(3) NOT NULL,
     `catatan` TEXT NOT NULL,
-    `jenis_kegiatan` ENUM('kunjungan', 'follow_up', 'penawaran', 'closing') NOT NULL,
+    `jenis_kegiatan` ENUM('visit', 'kebutuhan', 'opportunity', 'follow_up', 'quotation', 'po', 'revenue', 'kunjungan', 'penawaran', 'closing') NOT NULL,
     `jadwal_follow_up` DATETIME(3) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id_aktivitas`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `evidence` (
+    `id` VARCHAR(36) NOT NULL,
+    `id_aktivitas` VARCHAR(36) NOT NULL,
+    `tipe` ENUM('foto', 'audio', 'dokumen', 'teks') NOT NULL,
+    `nama_file` VARCHAR(255) NULL,
+    `ukuran_file` VARCHAR(50) NULL,
+    `durasi_audio` VARCHAR(50) NULL,
+    `deskripsi` TEXT NOT NULL,
+    `catatan` TEXT NULL,
+    `url_file` TEXT NULL,
+    `url_preview` TEXT NULL,
+    `waktu_upload` DATETIME(3) NULL,
+
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -130,6 +151,7 @@ CREATE TABLE `bukti_kunjungan` (
     `jarak_klien` DOUBLE NOT NULL,
     `dalam_radius` BOOLEAN NOT NULL,
     `img_url` TEXT NOT NULL,
+    `file_url` TEXT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updated_at` DATETIME(3) NOT NULL,
 
@@ -224,6 +246,9 @@ ALTER TABLE `aktivitas` ADD CONSTRAINT `aktivitas_id_user_fkey` FOREIGN KEY (`id
 
 -- AddForeignKey
 ALTER TABLE `aktivitas` ADD CONSTRAINT `aktivitas_id_tiket_fkey` FOREIGN KEY (`id_tiket`) REFERENCES `tiket`(`id_tiket`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `evidence` ADD CONSTRAINT `evidence_id_aktivitas_fkey` FOREIGN KEY (`id_aktivitas`) REFERENCES `aktivitas`(`id_aktivitas`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `bukti_kunjungan` ADD CONSTRAINT `bukti_kunjungan_id_aktivitas_fkey` FOREIGN KEY (`id_aktivitas`) REFERENCES `aktivitas`(`id_aktivitas`) ON DELETE CASCADE ON UPDATE CASCADE;

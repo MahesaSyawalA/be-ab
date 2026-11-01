@@ -2,8 +2,8 @@ import { type Kontak } from "../kontak/kontak.types.ts";
 
 export interface Pelanggan {
   id_pelanggan: string;
-  nama_faskes: string;
-  tipe_faskes: string;
+  nama_outlet: string;
+  tipe_outlet: string;
   alamat: string;
   latitude: number;
   longitude: number;
@@ -22,8 +22,8 @@ export interface PelangganWithDetails extends Pelanggan {
 }
 
 export interface CreatePelangganInput {
-  nama_faskes: string;
-  tipe_faskes: string;
+  nama_outlet: string;
+  tipe_outlet: string;
   alamat: string;
   latitude: number;
   longitude: number;
@@ -38,8 +38,8 @@ export interface CreatePelangganInput {
 }
 
 export interface UpdatePelangganInput {
-  nama_faskes?: string;
-  tipe_faskes?: string;
+  nama_outlet?: string;
+  tipe_outlet?: string;
   alamat?: string;
   latitude?: number;
   longitude?: number;

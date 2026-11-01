@@ -25,6 +25,7 @@ const ticketInclude = {
     include: {
       user: true,
       bukti_kunjungan: true,
+      evidence: true,
     },
     orderBy: { created_at: "desc" as const },
   },
@@ -53,7 +54,20 @@ function formatDates(date: Date | string | null | undefined) {
   const d = new Date(date);
   if (isNaN(d.getTime())) return { short: undefined, full: undefined };
   const day = d.getDate();
-  const monthsShort = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  const monthsShort = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Jul",
+    "Agu",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Des",
+  ];
   const mShort = monthsShort[d.getMonth()] ?? "";
   const year = d.getFullYear();
   return {
@@ -67,7 +81,9 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
   const latestPenawaran = raw.penawaran?.[0];
   const kode_tiket = raw.id_tiket?.startsWith("tkt-")
     ? raw.id_tiket.toUpperCase()
-    : `TKT-${String(raw.id_tiket || "").slice(0, 6).toUpperCase()}`;
+    : `TKT-${String(raw.id_tiket || "")
+        .slice(0, 6)
+        .toUpperCase()}`;
 
   return {
     id_tiket: raw.id_tiket,
@@ -88,7 +104,7 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
     created_at: raw.created_at,
     updated_at: raw.updated_at,
     kode_tiket,
-    nama_faskes: raw.pelanggan?.nama_faskes ?? "",
+    nama_outlet: raw.pelanggan?.nama_outlet ?? "",
     nama_pic: raw.kontak?.nama,
     jabatan_pic: raw.kontak?.jabatan,
     no_telp_pic: raw.kontak?.no_telp,
@@ -162,14 +178,16 @@ export const tiketRepository = {
     });
 
     // Catat riwayat tahap inisial secara otomatis
-    await prisma.riwayatTahap.create({
-      data: {
-        id_tiket: created.id_tiket,
-        id_tahap_asal: null,
-        id_tahap_tujuan: created.id_tahap,
-        id_user: created.id_user,
-      },
-    }).catch(() => null);
+    await prisma.riwayatTahap
+      .create({
+        data: {
+          id_tiket: created.id_tiket,
+          id_tahap_asal: null,
+          id_tahap_tujuan: created.id_tahap,
+          id_user: created.id_user,
+        },
+      })
+      .catch(() => null);
 
     return mapToTiketWithDetails(created);
   },
@@ -226,39 +244,58 @@ export const tiketRepository = {
     return rows.map(mapToTiketWithDetails);
   },
 
-  async update(id: string, data: UpdateTiketInput): Promise<TiketWithDetails | null> {
+  async update(
+    id: string,
+    data: UpdateTiketInput,
+  ): Promise<TiketWithDetails | null> {
     const existing = await prisma.tiket.findUnique({ where: { id_tiket: id } });
     if (!existing) return null;
 
     // Catat perpindahan tahap otomatis jika tahap berubah
     if (data.id_tahap && data.id_tahap !== existing.id_tahap) {
-      await prisma.riwayatTahap.create({
-        data: {
-          id_tiket: id,
-          id_tahap_asal: existing.id_tahap,
-          id_tahap_tujuan: data.id_tahap,
-          id_user: data.id_user ?? existing.id_user,
-        },
-      }).catch(() => null);
+      await prisma.riwayatTahap
+        .create({
+          data: {
+            id_tiket: id,
+            id_tahap_asal: existing.id_tahap,
+            id_tahap_tujuan: data.id_tahap,
+            id_user: data.id_user ?? existing.id_user,
+          },
+        })
+        .catch(() => null);
     }
 
     const updated = await prisma.tiket.update({
       where: { id_tiket: id },
       data: {
-        ...(data.id_pelanggan !== undefined && { id_pelanggan: data.id_pelanggan }),
+        ...(data.id_pelanggan !== undefined && {
+          id_pelanggan: data.id_pelanggan,
+        }),
         ...(data.id_user !== undefined && { id_user: data.id_user }),
         ...(data.id_tahap !== undefined && { id_tahap: data.id_tahap }),
         ...(data.id_kontak !== undefined && { id_kontak: data.id_kontak }),
         ...(data.judul !== undefined && { judul: data.judul }),
-        ...(data.estimasi_nilai !== undefined && { estimasi_nilai: data.estimasi_nilai }),
-        ...(data.estimasi_closing !== undefined && { estimasi_closing: new Date(data.estimasi_closing) }),
+        ...(data.estimasi_nilai !== undefined && {
+          estimasi_nilai: data.estimasi_nilai,
+        }),
+        ...(data.estimasi_closing !== undefined && {
+          estimasi_closing: new Date(data.estimasi_closing),
+        }),
         ...(data.status !== undefined && { status: data.status }),
-        ...(data.kebutuhan_pelanggan !== undefined && { kebutuhan_pelanggan: data.kebutuhan_pelanggan }),
+        ...(data.kebutuhan_pelanggan !== undefined && {
+          kebutuhan_pelanggan: data.kebutuhan_pelanggan,
+        }),
         ...(data.prioritas !== undefined && { prioritas: data.prioritas }),
         ...(data.posisi !== undefined && { posisi: data.posisi }),
-        ...(data.tanggal_penawaran_awal !== undefined && { tanggal_penawaran_awal: toDate(data.tanggal_penawaran_awal) }),
-        ...(data.tanggal_closing !== undefined && { tanggal_closing: toDate(data.tanggal_closing) }),
-        ...(data.alasan_lost !== undefined && { alasan_lost: data.alasan_lost }),
+        ...(data.tanggal_penawaran_awal !== undefined && {
+          tanggal_penawaran_awal: toDate(data.tanggal_penawaran_awal),
+        }),
+        ...(data.tanggal_closing !== undefined && {
+          tanggal_closing: toDate(data.tanggal_closing),
+        }),
+        ...(data.alasan_lost !== undefined && {
+          alasan_lost: data.alasan_lost,
+        }),
       },
       include: ticketInclude,
     });

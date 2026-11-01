@@ -11,23 +11,24 @@ export const pelangganRepository = {
     const { kontak, ...rest } = data;
     const created = await prisma.pelanggan.create({
       data: {
-        nama_faskes: rest.nama_faskes,
-        tipe_faskes: rest.tipe_faskes,
+        nama_outlet: rest.nama_outlet,
+        tipe_outlet: rest.tipe_outlet,
         alamat: rest.alamat,
         latitude: rest.latitude,
         longitude: rest.longitude,
         radius_kunjungan: rest.radius_kunjungan,
         img_url: rest.img_url,
-        ...(kontak && kontak.length > 0 && {
-          kontak: {
-            create: kontak.map((k) => ({
-              nama: k.nama,
-              jabatan: k.jabatan,
-              no_telp: k.no_telp,
-              email: k.email,
-            })),
-          },
-        }),
+        ...(kontak &&
+          kontak.length > 0 && {
+            kontak: {
+              create: kontak.map((k) => ({
+                nama: k.nama,
+                jabatan: k.jabatan,
+                no_telp: k.no_telp,
+                email: k.email,
+              })),
+            },
+          }),
       },
       include: {
         kontak: true,
@@ -78,8 +79,13 @@ export const pelangganRepository = {
     };
   },
 
-  async update(id: string, data: UpdatePelangganInput): Promise<Pelanggan | null> {
-    const existing = await prisma.pelanggan.findUnique({ where: { id_pelanggan: id } });
+  async update(
+    id: string,
+    data: UpdatePelangganInput,
+  ): Promise<Pelanggan | null> {
+    const existing = await prisma.pelanggan.findUnique({
+      where: { id_pelanggan: id },
+    });
     if (!existing) return null;
 
     return prisma.pelanggan.update({
@@ -89,7 +95,9 @@ export const pelangganRepository = {
   },
 
   async delete(id: string): Promise<Pelanggan | null> {
-    const existing = await prisma.pelanggan.findUnique({ where: { id_pelanggan: id } });
+    const existing = await prisma.pelanggan.findUnique({
+      where: { id_pelanggan: id },
+    });
     if (!existing) return null;
 
     return prisma.pelanggan.delete({

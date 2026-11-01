@@ -1,9 +1,14 @@
-import type { Request, Response } from "express";
+﻿import type { Request, Response } from "express";
 import { buktiKunjunganService } from "./bukti-kunjungan.service.ts";
+import type {
+  CreateBuktiKunjunganInput,
+  UpdateBuktiKunjunganInput,
+} from "./bukti-kunjungan.types.ts";
 
 export const buktiKunjunganController = {
   async create(req: Request, res: Response) {
-    const bukti = await buktiKunjunganService.create(req.body);
+    const data = req.body as CreateBuktiKunjunganInput;
+    const bukti = await buktiKunjunganService.create(data);
 
     res.status(201).json({
       message: "Bukti Kunjungan created successfully.",
@@ -42,7 +47,8 @@ export const buktiKunjunganController = {
 
   async update(req: Request, res: Response) {
     const id = req.params.id as string;
-    const bukti = await buktiKunjunganService.update(id, req.body);
+    const data = req.body as UpdateBuktiKunjunganInput;
+    const bukti = await buktiKunjunganService.update(id, data);
 
     if (!bukti) {
       res.status(404).json({

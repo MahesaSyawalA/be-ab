@@ -1,4 +1,4 @@
-export interface BuktiKunjungan {
+﻿export interface BuktiKunjungan {
   id_bukti: string;
   id_aktivitas: string;
   longitude: number;
@@ -6,7 +6,7 @@ export interface BuktiKunjungan {
   jarak_klien: number;
   dalam_radius: boolean;
   img_url: string;
-  file_url?: string;
+  file_url: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -18,7 +18,7 @@ export interface CreateBuktiKunjunganInput {
   jarak_klien: number;
   dalam_radius: boolean;
   img_url: string;
-  file_url?: string;
+  file_url?: string | null;
 }
 
 export interface UpdateBuktiKunjunganInput {
@@ -28,5 +28,5 @@ export interface UpdateBuktiKunjunganInput {
   jarak_klien?: number;
   dalam_radius?: boolean;
   img_url?: string;
-  file_url?: string;
+  file_url?: string | null;
 }

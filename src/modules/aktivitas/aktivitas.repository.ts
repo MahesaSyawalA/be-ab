@@ -1,4 +1,4 @@
-import { prisma } from "../../config/prisma.ts";
+﻿import { prisma } from "../../config/prisma.ts";
 import type {
   Aktivitas,
   CreateAktivitasInput,
@@ -31,9 +31,19 @@ export const aktivitasRepository = {
     });
   },
 
-  async getById(id: string): Promise<Aktivitas | null> {
+  async getById(id: string) {
     return prisma.aktivitas.findUnique({
       where: { id_aktivitas: id },
+      include: {
+        user: {
+          select: {
+            nama: true,
+            role: true,
+          },
+        },
+        bukti_kunjungan: true,
+        evidence: true,
+      },
     });
   },
 
@@ -44,15 +54,29 @@ export const aktivitasRepository = {
     });
   },
 
-  async getByTiketId(idTiket: string): Promise<Aktivitas[]> {
+  async getByTiketId(idTiket: string) {
     return prisma.aktivitas.findMany({
       where: { id_tiket: idTiket },
+      include: {
+        user: {
+          select: {
+            nama: true,
+          },
+        },
+        bukti_kunjungan: true,
+        evidence: true,
+      },
       orderBy: { tanggal: "desc" },
     });
   },
 
-  async update(id: string, data: UpdateAktivitasInput): Promise<Aktivitas | null> {
-    const existing = await prisma.aktivitas.findUnique({ where: { id_aktivitas: id } });
+  async update(
+    id: string,
+    data: UpdateAktivitasInput,
+  ): Promise<Aktivitas | null> {
+    const existing = await prisma.aktivitas.findUnique({
+      where: { id_aktivitas: id },
+    });
     if (!existing) return null;
 
     return prisma.aktivitas.update({
@@ -62,14 +86,20 @@ export const aktivitasRepository = {
         ...(data.id_tiket !== undefined && { id_tiket: data.id_tiket }),
         ...(data.tanggal !== undefined && { tanggal: new Date(data.tanggal) }),
         ...(data.catatan !== undefined && { catatan: data.catatan }),
-        ...(data.jenis_kegiatan !== undefined && { jenis_kegiatan: data.jenis_kegiatan }),
-        ...(data.jadwal_follow_up !== undefined && { jadwal_follow_up: toDate(data.jadwal_follow_up) }),
+        ...(data.jenis_kegiatan !== undefined && {
+          jenis_kegiatan: data.jenis_kegiatan,
+        }),
+        ...(data.jadwal_follow_up !== undefined && {
+          jadwal_follow_up: toDate(data.jadwal_follow_up),
+        }),
       },
     });
   },
 
   async delete(id: string): Promise<Aktivitas | null> {
-    const existing = await prisma.aktivitas.findUnique({ where: { id_aktivitas: id } });
+    const existing = await prisma.aktivitas.findUnique({
+      where: { id_aktivitas: id },
+    });
     if (!existing) return null;
 
     return prisma.aktivitas.delete({

@@ -1,9 +1,11 @@
-import type { Request, Response } from "express";
+﻿import type { Request, Response } from "express";
 import { kontakService } from "./kontak.service.ts";
+import type { CreateKontakInput, UpdateKontakInput } from "./kontak.types.ts";
 
 export const kontakController = {
   async create(req: Request, res: Response) {
-    const kontak = await kontakService.create(req.body);
+    const data = req.body as CreateKontakInput;
+    const kontak = await kontakService.create(data);
 
     res.status(201).json({
       message: "Kontak created successfully.",
@@ -42,7 +44,8 @@ export const kontakController = {
 
   async update(req: Request, res: Response) {
     const id = req.params.id as string;
-    const kontak = await kontakService.update(id, req.body);
+    const data = req.body as UpdateKontakInput;
+    const kontak = await kontakService.update(id, data);
 
     if (!kontak) {
       res.status(404).json({
