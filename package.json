@@ -9,6 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
     "seed": "tsx scripts/seed-users.ts",
+    "seed:all": "tsx scripts/seed.ts",
     "rehash-passwords": "tsx scripts/rehash-passwords.ts"
   },
   "dependencies": {

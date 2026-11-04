@@ -1,10 +1,6 @@
 import "dotenv/config";
 import { z } from "zod";
 
-/**
- * Format durasi yang diterima: "15m", "12h", "7d".
- * Sengaja tidak memakai `ms` agar satuannya selalu detik yang jelas.
- */
 const DURATION_PATTERN = /^(\d+)(s|m|h|d)$/;
 
 const UNIT_IN_SECONDS: Record<string, number> = {
@@ -17,14 +13,14 @@ const UNIT_IN_SECONDS: Record<string, number> = {
 export function parseDuration(value: string, name: string): number {
   const match = DURATION_PATTERN.exec(value.trim());
   if (match === null) {
-    throw new Error(`[env] ${name} harus berformat seperti "15m", "12h", atau "7d". Diterima: "${value}".`);
+    throw new Error(`[env] ${name} must be formatted like "15m", "12h", or "7d". Received: "${value}".`);
   }
 
   const unit = match[2] ?? "";
   const multiplier = UNIT_IN_SECONDS[unit];
 
   if (multiplier === undefined) {
-    throw new Error(`[env] ${name} memakai unit waktu yang tidak dikenal: "${value}".`);
+    throw new Error(`[env] ${name} uses an unrecognized time unit: "${value}".`);
   }
 
   return Number(match[1]) * multiplier;
@@ -32,9 +28,9 @@ export function parseDuration(value: string, name: string): number {
 
 const secretSchema = z
   .string()
-  .min(64, "minimal 64 karakter (32 byte dalam bentuk hex)")
-  .regex(/^[0-9a-fA-F]+$/, "harus berupa karakter hex")
-  .refine((value) => !value.includes("<") && !value.includes(">"), "masih berisi placeholder");
+  .min(64, "must be at least 64 characters (32 bytes in hex form)")
+  .regex(/^[0-9a-fA-F]+$/, "must consist of hex characters")
+  .refine((value) => !value.includes("<") && !value.includes(">"), "still contains a placeholder");
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -78,10 +74,6 @@ export interface Env {
   bcryptCost: number;
 }
 
-/**
- * Memvalidasi seluruh environment dan mengubah TTL menjadi **detik**, supaya
- * `exp` token dan `maxAge` cookie dihitung dari angka yang sama.
- */
 export function validateEnv(raw: NodeJS.ProcessEnv): Env {
   const parsed = envSchema.safeParse(raw);
 
@@ -89,13 +81,13 @@ export function validateEnv(raw: NodeJS.ProcessEnv): Env {
     const details = parsed.error.issues
       .map((issue) => `  - ${issue.path.join(".") || "(root)"}: ${issue.message}`)
       .join("\n");
-    throw new Error(`[env] Konfigurasi environment tidak valid:\n${details}`);
+    throw new Error(`[env] Environment configuration is invalid:\n${details}`);
   }
 
   const data = parsed.data;
 
   if (data.JWT_ACCESS_SECRET === data.JWT_REFRESH_SECRET) {
-    throw new Error("[env] JWT_ACCESS_SECRET dan JWT_REFRESH_SECRET tidak boleh sama.");
+    throw new Error("[env] JWT_ACCESS_SECRET and JWT_REFRESH_SECRET cannot be the same.");
   }
 
   const accessTokenTtlSec = parseDuration(data.ACCESS_TOKEN_TTL, "ACCESS_TOKEN_TTL");
@@ -103,11 +95,11 @@ export function validateEnv(raw: NodeJS.ProcessEnv): Env {
   const sessionMaxAgeSec = parseDuration(data.SESSION_MAX_AGE, "SESSION_MAX_AGE");
 
   if (accessTokenTtlSec >= refreshTokenTtlSec) {
-    throw new Error("[env] ACCESS_TOKEN_TTL harus lebih pendek dari REFRESH_TOKEN_TTL.");
+    throw new Error("[env] ACCESS_TOKEN_TTL must be shorter than REFRESH_TOKEN_TTL.");
   }
 
   if (refreshTokenTtlSec > sessionMaxAgeSec) {
-    throw new Error("[env] REFRESH_TOKEN_TTL tidak boleh melebihi SESSION_MAX_AGE.");
+    throw new Error("[env] REFRESH_TOKEN_TTL cannot exceeds value of SESSION_MAX_AGE.");
   }
 
   const corsOrigins = data.CORS_ORIGIN.split(",")
@@ -115,7 +107,7 @@ export function validateEnv(raw: NodeJS.ProcessEnv): Env {
     .filter((origin) => origin !== "");
 
   if (corsOrigins.length === 0) {
-    throw new Error("[env] CORS_ORIGIN harus memuat minimal satu origin.");
+    throw new Error("[env] CORS_ORIGIN must at least have one origin.");
   }
 
   return {

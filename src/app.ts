@@ -16,6 +16,7 @@ import buktiKunjunganRoutes from "./modules/bukti-kunjungan/bukti-kunjungan.rout
 import penawaranRoutes from "./modules/penawaran/penawaran.routes.ts";
 import purchaseOrderRoutes from "./modules/purchase-order/purchase-order.routes.ts";
 import notifikasiRoutes from "./modules/notifikasi/notifikasi.routes.ts";
+import generalRoutes from "./routes/general-routes.ts";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use(express.json());
 app.use(checkOrigin);
 
 // Routes
+app.use("/api", generalRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/squad", squadRoutes);
