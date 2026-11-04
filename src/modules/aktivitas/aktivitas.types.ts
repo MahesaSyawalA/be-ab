@@ -5,11 +5,8 @@
   | "follow_up"
   | "quotation"
   | "po"
-  | "revenue"
-  | "kunjungan"
-  | "penawaran"
-  | "closing";
-
+  | "revenue";
+  
 export type JenisEvidence = "foto" | "audio" | "dokumen" | "teks";
 
 export interface EvidenceItem {

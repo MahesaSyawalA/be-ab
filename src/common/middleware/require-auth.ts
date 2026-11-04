@@ -6,7 +6,15 @@ import { HttpError } from "../utils/http-error.ts";
 
 export const requireAuth: RequestHandler = async (req, _res, next) => {
   try {
-    const token = parseCookies(req.headers.cookie)[COOKIE_NAMES.access];
+    let token = parseCookies(req.headers.cookie)[COOKIE_NAMES.access];
+
+    if (token === undefined && req.headers.authorization) {
+      const parts = req.headers.authorization.split(" ");
+      if (parts.length === 2 && parts[0] === "Bearer") {
+        token = parts[1];
+      }
+    }
+
     if (token === undefined) {
       throw new HttpError(401, "Tidak terautentikasi.");
     }

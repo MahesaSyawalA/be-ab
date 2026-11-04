@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const createPelangganSchema = z.object({
-  nama_outlet: z.string().min(1, { message: "Nama outlet wajib diisi" }),
-  tipe_outlet: z
-    .string()
-    .min(1, { message: "Tipe outlet wajib diisi/dipilih" }),
+  nama_outlet: z.string().min(1, { message: "Nama outlet wajib diisi" }).optional(),
+  tipe_outlet: z.string().min(1, { message: "Tipe outlet wajib diisi/dipilih" }).optional(),
+  nama_faskes: z.string().min(1, { message: "Nama faskes wajib diisi" }).optional(),
+  tipe_faskes: z.string().min(1, { message: "Tipe faskes wajib diisi/dipilih" }).optional(),
   alamat: z
     .string()
     .min(5, { message: "Alamat terlalu pendek, minimal 5 karakter" }),
@@ -13,7 +13,7 @@ export const createPelangganSchema = z.object({
   radius_kunjungan: z.coerce.number({
     message: "Radius kunjungan harus berupa angka",
   }),
-  img_url: z.string().min(1, { message: "URL gambar outlet wajib diupload" }),
+  img_url: z.string().min(1, { message: "URL gambar outlet/faskes wajib diupload" }),
   kontak: z
     .array(
       z.object({
@@ -26,6 +26,12 @@ export const createPelangganSchema = z.object({
       }),
     )
     .optional(),
+}).refine((data) => Boolean(data.nama_outlet || data.nama_faskes), {
+  message: "Nama faskes / outlet wajib diisi",
+  path: ["nama_faskes"],
+}).refine((data) => Boolean(data.tipe_outlet || data.tipe_faskes), {
+  message: "Tipe faskes / outlet wajib diisi",
+  path: ["tipe_faskes"],
 });
 
 export const updatePelangganSchema = createPelangganSchema.partial();

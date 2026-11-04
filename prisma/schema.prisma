@@ -42,9 +42,6 @@ enum JenisKegiatan {
   quotation
   po
   revenue
-  kunjungan
-  penawaran
-  closing
 }
 
 enum JenisEvidence {
