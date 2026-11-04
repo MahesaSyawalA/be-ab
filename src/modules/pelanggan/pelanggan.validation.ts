@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createPelangganSchema = z.object({
+const pelangganBaseSchema = z.object({
   nama_outlet: z.string().min(1, { message: "Nama outlet wajib diisi" }).optional(),
   tipe_outlet: z.string().min(1, { message: "Tipe outlet wajib diisi/dipilih" }).optional(),
   nama_faskes: z.string().min(1, { message: "Nama faskes wajib diisi" }).optional(),
@@ -26,12 +26,18 @@ export const createPelangganSchema = z.object({
       }),
     )
     .optional(),
-}).refine((data) => Boolean(data.nama_outlet || data.nama_faskes), {
-  message: "Nama faskes / outlet wajib diisi",
-  path: ["nama_faskes"],
-}).refine((data) => Boolean(data.tipe_outlet || data.tipe_faskes), {
-  message: "Tipe faskes / outlet wajib diisi",
-  path: ["tipe_faskes"],
 });
 
-export const updatePelangganSchema = createPelangganSchema.partial();
+export const createPelangganSchema = pelangganBaseSchema
+  .refine((data) => Boolean(data.nama_outlet || data.nama_faskes), {
+    message: "Nama faskes / outlet wajib diisi",
+    path: ["nama_faskes"],
+  })
+  .refine((data) => Boolean(data.tipe_outlet || data.tipe_faskes), {
+    message: "Tipe faskes / outlet wajib diisi",
+    path: ["tipe_faskes"],
+  });
+
+export const updatePelangganSchema = pelangganBaseSchema
+  .omit({ kontak: true })
+  .partial();
