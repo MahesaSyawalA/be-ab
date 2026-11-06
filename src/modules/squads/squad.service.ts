@@ -1,28 +1,32 @@
+import { HttpError } from "../../common/utils/http-error.ts";
 import { squadRepository } from "./squad.repository.ts";
-import type { Squad, CreateSquadInput, UpdateSquadInput } from "./squad.types.ts";
+import type { CreateSquadInput, SquadWithDetails, UpdateSquadInput } from "./squad.types.ts";
+
+/** Prisma P2002 = unique constraint (`kode_squad`) dilanggar. */
+async function guardUniqueKode<T>(action: () => Promise<T>): Promise<T> {
+    try {
+        return await action();
+    } catch (error) {
+        if ((error as { code?: string }).code === "P2002") {
+            throw new HttpError(409, "Kode squad sudah digunakan.");
+        }
+        throw error;
+    }
+}
 
 export const squadService = {
-    async create(data: CreateSquadInput): Promise<Squad> {
-        return squadRepository.create(data);
-    },
+    create: (data: CreateSquadInput): Promise<SquadWithDetails> =>
+        guardUniqueKode(() => squadRepository.create(data)),
 
-    async getAll(): Promise<Squad[]> {
-        return squadRepository.getAll();
-    },
+    getAll: (): Promise<SquadWithDetails[]> => squadRepository.getAll(),
 
-    async getById(id: string): Promise<Squad | null> {
-        return squadRepository.getById(id);
-    },
+    getById: (id: string): Promise<SquadWithDetails | null> => squadRepository.getById(id),
 
-    async getBySupervisorId(idSupervisor: string): Promise<Squad[]> {
-        return squadRepository.getBySupervisorId(idSupervisor);
-    },
+    getBySupervisorId: (idSupervisor: string): Promise<SquadWithDetails[]> =>
+        squadRepository.getBySupervisorId(idSupervisor),
 
-    async update(id: string, data: UpdateSquadInput): Promise<Squad | null> {
-        return squadRepository.update(id, data);
-    },
+    update: (id: string, data: UpdateSquadInput): Promise<SquadWithDetails | null> =>
+        guardUniqueKode(() => squadRepository.update(id, data)),
 
-    async delete(id: string): Promise<Squad | null> {
-        return squadRepository.delete(id);
-    },
+    delete: (id: string): Promise<boolean> => squadRepository.delete(id),
 };
