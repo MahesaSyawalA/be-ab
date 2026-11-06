@@ -15,6 +15,7 @@ export interface EvidenceItem {
   nama_file?: string;
   ukuran_file?: string;
   durasi_audio?: string;
+  durasi_detik?: string;
   deskripsi: string;
   url_preview?: string;
   jenis?: JenisEvidence;
