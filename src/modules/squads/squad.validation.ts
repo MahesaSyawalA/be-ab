@@ -6,6 +6,7 @@ export const createSquadSchema = z.object({
   kode_squad: z.string().min(1, { message: "Kode squad wajib diisi" }),
   wilayah: z.string().min(1, { message: "Wilayah wajib diisi" }),
   is_active: z.boolean({ message: "Status aktif wajib diisi dengan format yang benar" }),
+  member_ids: z.array(z.uuid({ message: "ID anggota tidak valid" })).optional(),
 });
 
 export const updateSquadSchema = createSquadSchema.partial();
