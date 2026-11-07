@@ -46,7 +46,6 @@ app.use("/api/tiket", tiketRoutes);
 app.use("/api/riwayat-tahap", riwayatTahapRoutes);
 app.use("/api/aktivitas", aktivitasRoutes);
 app.use("/api/bukti-kunjungan", buktiKunjunganRoutes);
-app.use("/api/bukti_kunjungan", buktiKunjunganRoutes);
 app.use("/api/penawaran", penawaranRoutes);
 app.use("/api/purchase-order", purchaseOrderRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
