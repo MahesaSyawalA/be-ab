@@ -16,6 +16,7 @@ import buktiKunjunganRoutes from "./modules/bukti-kunjungan/bukti-kunjungan.rout
 import penawaranRoutes from "./modules/penawaran/penawaran.routes.ts";
 import purchaseOrderRoutes from "./modules/purchase-order/purchase-order.routes.ts";
 import notifikasiRoutes from "./modules/notifikasi/notifikasi.routes.ts";
+import evidenceRoutes from "./modules/evidence/evidence.routes.ts";
 import generalRoutes from "./routes/general-routes.ts";
 import messagesRouter from "./routes/pusher.ts";
 
@@ -49,6 +50,7 @@ app.use("/api/bukti-kunjungan", buktiKunjunganRoutes);
 app.use("/api/penawaran", penawaranRoutes);
 app.use("/api/purchase-order", purchaseOrderRoutes);
 app.use("/api/notifikasi", notifikasiRoutes);
+app.use("/api/evidence", evidenceRoutes);
 app.use(errorHandler);
 
 export default app;
