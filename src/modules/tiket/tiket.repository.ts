@@ -105,7 +105,6 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
     updated_at: raw.updated_at,
     kode_tiket,
     nama_outlet: raw.pelanggan?.nama_outlet ?? raw.pelanggan?.nama_faskes ?? "",
-    nama_faskes: raw.pelanggan?.nama_outlet ?? raw.pelanggan?.nama_faskes ?? "",
     nama_pic: raw.kontak?.nama,
     jabatan_pic: raw.kontak?.jabatan,
     no_telp_pic: raw.kontak?.no_telp,
