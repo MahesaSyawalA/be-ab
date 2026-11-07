@@ -38,7 +38,6 @@ app.use("/api", generalRoutes);
 app.use("/api/pusher", messagesRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/squad", squadRoutes);
 app.use("/api/squads", squadRoutes);
 app.use("/api/pelanggan", pelangganRoutes);
 app.use("/api/kontak", kontakRoutes);
