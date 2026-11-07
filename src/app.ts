@@ -42,7 +42,6 @@ app.use("/api/squads", squadRoutes);
 app.use("/api/pelanggan", pelangganRoutes);
 app.use("/api/kontak", kontakRoutes);
 app.use("/api/tahap-kanban", tahapKanbanRoutes);
-app.use("/api/tahap_kanban", tahapKanbanRoutes);
 app.use("/api/tiket", tiketRoutes);
 app.use("/api/riwayat-tahap", riwayatTahapRoutes);
 app.use("/api/aktivitas", aktivitasRoutes);
