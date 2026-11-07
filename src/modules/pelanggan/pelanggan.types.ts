@@ -29,7 +29,6 @@ export interface CreatePelangganInput {
   latitude: number;
   longitude: number;
   radius_kunjungan: number;
-  img_url: string;
   kontak?: Array<{
     nama: string;
     jabatan: string;
@@ -45,5 +44,7 @@ export interface UpdatePelangganInput {
   latitude?: number;
   longitude?: number;
   radius_kunjungan?: number;
-  img_url?: string;
 }
+
+export type CreatePelangganData = CreatePelangganInput & { img_url: string };
+export type UpdatePelangganData = UpdatePelangganInput & { img_url?: string };

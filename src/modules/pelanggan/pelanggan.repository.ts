@@ -2,8 +2,8 @@ import { prisma } from "../../config/prisma.ts";
 import type {
   Pelanggan,
   PelangganWithDetails,
-  CreatePelangganInput,
-  UpdatePelangganInput,
+  CreatePelangganData,
+  UpdatePelangganData,
 } from "./pelanggan.types.ts";
 
 function mapToPelangganWithDetails(p: any): PelangganWithDetails {
@@ -21,10 +21,10 @@ function mapToPelangganWithDetails(p: any): PelangganWithDetails {
 }
 
 export const pelangganRepository = {
-  async create(data: CreatePelangganInput): Promise<PelangganWithDetails> {
+  async create(data: CreatePelangganData): Promise<PelangganWithDetails> {
     const { kontak, ...rest } = data;
-    const nama_outlet = rest.nama_outlet || rest.nama_faskes || "";
-    const tipe_outlet = rest.tipe_outlet || rest.tipe_faskes || "Rumah Sakit";
+    const nama_outlet = rest.nama_outlet || "";
+    const tipe_outlet = rest.tipe_outlet || "Rumah Sakit";
 
     const created = await prisma.pelanggan.create({
       data: {
@@ -90,15 +90,15 @@ export const pelangganRepository = {
 
   async update(
     id: string,
-    data: UpdatePelangganInput,
+    data: UpdatePelangganData,
   ): Promise<Pelanggan | null> {
     const existing = await prisma.pelanggan.findUnique({
       where: { id_pelanggan: id },
     });
     if (!existing) return null;
 
-    const nama_outlet = data.nama_outlet ?? data.nama_faskes;
-    const tipe_outlet = data.tipe_outlet ?? data.tipe_faskes;
+    const nama_outlet = data.nama_outlet;
+    const tipe_outlet = data.tipe_outlet;
 
     const updated = await prisma.pelanggan.update({
       where: { id_pelanggan: id },

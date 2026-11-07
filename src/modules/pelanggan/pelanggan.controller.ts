@@ -3,7 +3,7 @@ import { pelangganService } from "./pelanggan.service.ts";
 
 export const pelangganController = {
   async create(req: Request, res: Response) {
-    const pelanggan = await pelangganService.create(req.body);
+    const pelanggan = await pelangganService.create(req.body, req.file);
 
     res.status(201).json({
       message: "Pelanggan created successfully.",
@@ -37,7 +37,7 @@ export const pelangganController = {
 
   async update(req: Request, res: Response) {
     const id = req.params.id as string;
-    const pelanggan = await pelangganService.update(id, req.body);
+    const pelanggan = await pelangganService.update(id, req.body, req.file);
 
     if (!pelanggan) {
       res.status(404).json({

@@ -1,3 +1,5 @@
+import { HttpError } from "../../common/utils/http-error.ts";
+import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
 import { pelangganRepository } from "./pelanggan.repository.ts";
 import type {
   Pelanggan,
@@ -6,9 +8,40 @@ import type {
   UpdatePelangganInput,
 } from "./pelanggan.types.ts";
 
+const IMAGE_FOLDER = "pelanggan";
+
+async function storeImage(file: Express.Multer.File): Promise<string> {
+  if (!file.mimetype.startsWith("image/")) {
+    throw new HttpError(400, "File harus berupa gambar.");
+  }
+  return uploadToR2(file, IMAGE_FOLDER);
+}
+
+async function removeImageQuietly(url: string | null | undefined): Promise<void> {
+  try {
+    await deleteFromR2(url);
+  } catch (error) {
+    console.error(`Gagal menghapus gambar R2 (${url}):`, error);
+  }
+}
+
 export const pelangganService = {
-  async create(data: CreatePelangganInput): Promise<PelangganWithDetails> {
-    return pelangganRepository.create(data);
+  async create(
+    data: CreatePelangganInput,
+    file?: Express.Multer.File,
+  ): Promise<PelangganWithDetails> {
+    if (!file) {
+      throw new HttpError(400, "Gambar outlet/faskes wajib diunggah.");
+    }
+
+    const img_url = await storeImage(file);
+
+    try {
+      return await pelangganRepository.create({ ...data, img_url });
+    } catch (error) {
+      await removeImageQuietly(img_url);
+      throw error;
+    }
   },
 
   async getAll(): Promise<PelangganWithDetails[]> {
@@ -19,11 +52,36 @@ export const pelangganService = {
     return pelangganRepository.getById(id);
   },
 
-  async update(id: string, data: UpdatePelangganInput): Promise<Pelanggan | null> {
-    return pelangganRepository.update(id, data);
+  async update(
+    id: string,
+    data: UpdatePelangganInput,
+    file?: Express.Multer.File,
+  ): Promise<Pelanggan | null> {
+    const existing = await pelangganRepository.getById(id);
+    if (!existing) return null;
+
+    const img_url = file ? await storeImage(file) : undefined;
+
+    let updated: Pelanggan | null;
+    try {
+      updated = await pelangganRepository.update(id, { ...data, img_url });
+    } catch (error) {
+      await removeImageQuietly(img_url);
+      throw error;
+    }
+
+    if (!updated) {
+      await removeImageQuietly(img_url);
+      return null;
+    }
+
+    if (img_url) await removeImageQuietly(existing.img_url);
+    return updated;
   },
 
   async delete(id: string): Promise<Pelanggan | null> {
-    return pelangganRepository.delete(id);
+    const deleted = await pelangganRepository.delete(id);
+    if (deleted) await removeImageQuietly(deleted.img_url);
+    return deleted;
   },
 };
