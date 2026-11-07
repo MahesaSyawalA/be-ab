@@ -2,14 +2,15 @@ import { Router } from "express";
 import { buktiKunjunganController } from "./bukti-kunjungan.controller.ts";
 import { createBuktiKunjunganSchema, updateBuktiKunjunganSchema } from "./bukti-kunjungan.validation.ts";
 import { validateBody } from "../../common/middleware/validate-body.ts";
+import { buktiKunjunganUpload } from "./bukti-kunjungan.upload.ts";
 
 const router = Router();
 
-router.post("/", validateBody(createBuktiKunjunganSchema), buktiKunjunganController.create);
 router.get("/", buktiKunjunganController.getAll);
 router.get("/:id", buktiKunjunganController.getById);
-router.put("/:id", validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
-router.patch("/:id", validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
 router.delete("/:id", buktiKunjunganController.delete);
+router.patch("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
+router.post("/", buktiKunjunganUpload, validateBody(createBuktiKunjunganSchema), buktiKunjunganController.create);
+router.put("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
 
 export default router;

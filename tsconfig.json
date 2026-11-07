@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["node", "multer"],
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -8,6 +9,6 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   }
 }

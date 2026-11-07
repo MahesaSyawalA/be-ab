@@ -13,6 +13,7 @@
     "rehash-passwords": "tsx scripts/rehash-passwords.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1164.0",
     "@prisma/adapter-mariadb": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcryptjs": "^3.0.3",
@@ -21,12 +22,14 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.7.1",
     "jose": "^6.2.12",
+    "multer": "^2.5.0",
     "pusher": "^5.3.4",
     "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.3.0",
     "@types/node": "^26.6.4",
     "prisma": "^7.10.1",
     "tsx": "^4.20.0",

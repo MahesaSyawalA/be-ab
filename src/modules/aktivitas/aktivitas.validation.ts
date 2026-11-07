@@ -13,9 +13,6 @@ export const createAktivitasSchema = z.object({
     "quotation",
     "po",
     "revenue",
-    "kunjungan",
-    "penawaran",
-    "closing",
   ], {
     message: "Pilih salah satu jenis kegiatan yang tersedia",
   }),
