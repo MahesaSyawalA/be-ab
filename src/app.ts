@@ -24,13 +24,14 @@ const app = express();
 
 app.set("trust proxy", env.trustProxy);
 
-app.use(
-  cors({
-    origin: env.corsOrigins,
-    credentials: true,
-  })
-);
+const corsOptions: cors.CorsOptions = {
+  origin: env.corsOrigins,
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "ngrok-skip-browser-warning"],
+};
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(checkOrigin);
 

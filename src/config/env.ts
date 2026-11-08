@@ -38,7 +38,7 @@ const envSchema = z.object({
   TRUST_PROXY: z.coerce.number().int().min(0).default(0),
   DATABASE_URL: z.string().min(1).default("mysql://root:@127.0.0.1:3306/salestracking_db"),
 
-  CORS_ORIGIN: z.string().min(1).default("http://localhost:5173"),
+  CORS_ORIGINS: z.string().min(1).default("http://localhost:5173"),
 
   JWT_ACCESS_SECRET: secretSchema,
   JWT_REFRESH_SECRET: secretSchema,
@@ -102,7 +102,7 @@ export function validateEnv(raw: NodeJS.ProcessEnv): Env {
     throw new Error("[env] REFRESH_TOKEN_TTL cannot exceeds value of SESSION_MAX_AGE.");
   }
 
-  const corsOrigins = data.CORS_ORIGIN.split(",")
+  const corsOrigins = data.CORS_ORIGINS.split(",")
     .map((origin) => origin.trim())
     .filter((origin) => origin !== "");
 
