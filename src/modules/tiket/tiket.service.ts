@@ -1,6 +1,10 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { tiketRepository } from "./tiket.repository.ts";
 import type {
   Tiket,
+  TiketFilters,
+  TiketSortBy,
   TiketWithDetails,
   CreateTiketInput,
   UpdateTiketInput,
@@ -11,8 +15,9 @@ export const tiketService = {
     return tiketRepository.create(data);
   },
 
-  async getAll(): Promise<TiketWithDetails[]> {
-    return tiketRepository.getAll();
+  async getAll(filters: TiketFilters, pagination: PaginationParams, sortBy: TiketSortBy) {
+    const { items, total } = await tiketRepository.getAll(filters, pagination, sortBy);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<TiketWithDetails | null> {

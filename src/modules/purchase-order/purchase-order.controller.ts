@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { purchaseOrderService } from "./purchase-order.service.ts";
+import { purchaseOrderQuerySchema } from "./purchase-order.validation.ts";
 
 export const purchaseOrderController = {
   async create(req: Request, res: Response) {
@@ -18,32 +19,19 @@ export const purchaseOrderController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_penawaran, id_tiket, no_po } = req.query;
+    const parsed = purchaseOrderQuerySchema.safeParse(req.query);
 
-    if (typeof no_po === "string") {
-      const po = await purchaseOrderService.getByNoPo(no_po);
-      if (!po) {
-        res.status(404).json({ message: "Purchase Order not found." });
-        return;
-      }
-      res.status(200).json({ data: po });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    if (typeof id_penawaran === "string") {
-      const data = await purchaseOrderService.getByPenawaranId(id_penawaran);
-      res.status(200).json({ data });
-      return;
-    }
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await purchaseOrderService.getAll(filters, { page, limit, order });
 
-    if (typeof id_tiket === "string") {
-      const data = await purchaseOrderService.getByTiketId(id_tiket);
-      res.status(200).json({ data });
-      return;
-    }
-
-    const data = await purchaseOrderService.getAll();
-    res.status(200).json({ data });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

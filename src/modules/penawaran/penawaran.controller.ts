@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { penawaranService } from "./penawaran.service.ts";
+import { penawaranQuerySchema } from "./penawaran.validation.ts";
 
 export const penawaranController = {
   async create(req: Request, res: Response) {
@@ -18,32 +19,19 @@ export const penawaranController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_tiket, id_aktivitas, no_penawaran } = req.query;
+    const parsed = penawaranQuerySchema.safeParse(req.query);
 
-    if (typeof no_penawaran === "string") {
-      const penawaran = await penawaranService.getByNoPenawaran(no_penawaran);
-      if (!penawaran) {
-        res.status(404).json({ message: "Penawaran not found." });
-        return;
-      }
-      res.status(200).json({ data: penawaran });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    if (typeof id_tiket === "string") {
-      const data = await penawaranService.getByTiketId(id_tiket);
-      res.status(200).json({ data });
-      return;
-    }
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await penawaranService.getAll(filters, { page, limit, order });
 
-    if (typeof id_aktivitas === "string") {
-      const data = await penawaranService.getByAktivitasId(id_aktivitas);
-      res.status(200).json({ data });
-      return;
-    }
-
-    const data = await penawaranService.getAll();
-    res.status(200).json({ data });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

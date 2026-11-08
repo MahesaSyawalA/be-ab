@@ -1,6 +1,11 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Tiket,
+  TiketFilters,
+  TiketSortBy,
   TiketWithDetails,
   CreateTiketInput,
   UpdateTiketInput,
@@ -38,6 +43,22 @@ const ticketInclude = {
     orderBy: { waktu_pindah: "desc" as const },
   },
 };
+
+function buildOrderBy(
+  sortBy: TiketSortBy,
+  order: PaginationParams["order"],
+): Prisma.TiketOrderByWithRelationInput[] {
+  const primary: Prisma.TiketOrderByWithRelationInput =
+    sortBy === "posisi"
+      ? { posisi: order }
+      : sortBy === "estimasi_closing"
+        ? { estimasi_closing: order }
+        : sortBy === "estimasi_nilai"
+          ? { estimasi_nilai: order }
+          : { created_at: order };
+
+  return [primary, { id_tiket: "asc" }];
+}
 
 function getInitials(name?: string | null): string {
   if (!name) return "";
@@ -192,12 +213,37 @@ export const tiketRepository = {
     return mapToTiketWithDetails(created);
   },
 
-  async getAll(): Promise<TiketWithDetails[]> {
-    const rows = await prisma.tiket.findMany({
-      include: ticketInclude,
-      orderBy: { created_at: "desc" },
-    });
-    return rows.map(mapToTiketWithDetails);
+  async getAll(
+    filters: TiketFilters,
+    pagination: PaginationParams,
+    sortBy: TiketSortBy,
+  ): Promise<{ items: TiketWithDetails[]; total: number }> {
+    const where: Prisma.TiketWhereInput = {
+      id_pelanggan: filters.id_pelanggan,
+      id_user: filters.id_user,
+      id_tahap: filters.id_tahap,
+      id_kontak: filters.id_kontak,
+      status: filters.status,
+      prioritas: filters.prioritas,
+      ...(filters.search && {
+        OR: [
+          { judul: { contains: filters.search } },
+          { pelanggan: { nama_outlet: { contains: filters.search } } },
+        ],
+      }),
+    };
+
+    const [rows, total] = await prisma.$transaction([
+      prisma.tiket.findMany({
+        where,
+        include: ticketInclude,
+        orderBy: buildOrderBy(sortBy, pagination.order),
+        ...toSkipTake(pagination),
+      }),
+      prisma.tiket.count({ where }),
+    ]);
+
+    return { items: rows.map(mapToTiketWithDetails), total };
   },
 
   async getById(id: string): Promise<TiketWithDetails | null> {

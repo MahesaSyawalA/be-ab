@@ -1,6 +1,9 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { riwayatTahapRepository } from "./riwayat-tahap.repository.ts";
 import type {
   RiwayatTahap,
+  RiwayatTahapFilters,
   CreateRiwayatTahapInput,
   UpdateRiwayatTahapInput,
 } from "./riwayat-tahap.types.ts";
@@ -10,8 +13,9 @@ export const riwayatTahapService = {
     return riwayatTahapRepository.create(data);
   },
 
-  async getAll(): Promise<RiwayatTahap[]> {
-    return riwayatTahapRepository.getAll();
+  async getAll(filters: RiwayatTahapFilters, pagination: PaginationParams) {
+    const { items, total } = await riwayatTahapRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<RiwayatTahap | null> {

@@ -61,3 +61,10 @@ export interface UpdateAktivitasInput {
   jenis_kegiatan?: JenisKegiatan;
   jadwal_follow_up?: string | Date | null;
 }
+
+export interface AktivitasFilters {
+  id_user?: string;
+  id_tiket?: string;
+  jenis_kegiatan?: JenisKegiatan;
+  search?: string;
+}

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { pelangganService } from "./pelanggan.service.ts";
+import { pelangganQuerySchema } from "./pelanggan.validation.ts";
 
 export const pelangganController = {
   async create(req: Request, res: Response) {
@@ -12,11 +13,19 @@ export const pelangganController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const pelanggan = await pelangganService.getAll();
+    const parsed = pelangganQuerySchema.safeParse(req.query);
 
-    res.status(200).json({
-      data: pelanggan,
-    });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
+      return;
+    }
+
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await pelangganService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

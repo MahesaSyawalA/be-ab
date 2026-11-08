@@ -1,5 +1,7 @@
 import { type Kontak } from "../kontak/kontak.types.ts";
 
+export type StatusPelanggan = "Aktif" | "Nonaktif" | "Prospek";
+
 export interface Pelanggan {
   id_pelanggan: string;
   nama_outlet: string;
@@ -18,7 +20,7 @@ export interface PelangganWithDetails extends Pelanggan {
   tiket_aktif?: number;
   total_kunjungan?: number;
   estimasi_nilai?: string;
-  status?: "Aktif" | "Nonaktif" | "Prospek";
+  status?: StatusPelanggan;
   kontak_list?: Kontak[];
 }
 
@@ -48,3 +50,9 @@ export interface UpdatePelangganInput {
 
 export type CreatePelangganData = CreatePelangganInput & { img_url: string };
 export type UpdatePelangganData = UpdatePelangganInput & { img_url?: string };
+
+export interface PelangganFilters {
+  search?: string;
+  tipe_outlet?: string;
+  status?: StatusPelanggan;
+}

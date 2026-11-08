@@ -1,6 +1,10 @@
 ﻿import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Kontak,
+  KontakFilters,
   CreateKontakInput,
   UpdateKontakInput,
 } from "./kontak.types.ts";
@@ -20,10 +24,31 @@ export const kontakRepository = {
     });
   },
 
-  async getAll(): Promise<Kontak[]> {
-    return prisma.kontak.findMany({
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: KontakFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: Kontak[]; total: number }> {
+    const where: Prisma.KontakWhereInput = {
+      id_pelanggan: filters.id_pelanggan,
+      ...(filters.search && {
+        OR: [
+          { nama: { contains: filters.search } },
+          { jabatan: { contains: filters.search } },
+          { email: { contains: filters.search } },
+        ],
+      }),
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.kontak.findMany({
+        where,
+        orderBy: [{ created_at: pagination.order }, { id_kontak: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.kontak.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<Kontak | null> {

@@ -1,6 +1,9 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { purchaseOrderRepository } from "./purchase-order.repository.ts";
 import type {
   PurchaseOrder,
+  PurchaseOrderFilters,
   CreatePurchaseOrderInput,
   UpdatePurchaseOrderInput,
 } from "./purchase-order.types.ts";
@@ -15,8 +18,9 @@ export const purchaseOrderService = {
     return purchaseOrderRepository.create(data);
   },
 
-  async getAll(): Promise<PurchaseOrder[]> {
-    return purchaseOrderRepository.getAll();
+  async getAll(filters: PurchaseOrderFilters, pagination: PaginationParams) {
+    const { items, total } = await purchaseOrderRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<PurchaseOrder | null> {

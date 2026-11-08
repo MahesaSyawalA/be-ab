@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { tiketService } from "./tiket.service.ts";
+import { tiketQuerySchema } from "./tiket.validation.ts";
 
 export const tiketController = {
   async create(req: Request, res: Response) {
@@ -12,34 +13,19 @@ export const tiketController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_pelanggan, id_user, id_tahap, id_kontak } = req.query;
+    const parsed = tiketQuerySchema.safeParse(req.query);
 
-    if (typeof id_pelanggan === "string") {
-      const data = await tiketService.getByPelangganId(id_pelanggan);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    if (typeof id_user === "string") {
-      const data = await tiketService.getByUserId(id_user);
-      res.status(200).json({ data });
-      return;
-    }
+    const { page, limit, order, sort_by, ...filters } = parsed.data;
+    const { data, meta } = await tiketService.getAll(filters, { page, limit, order }, sort_by);
 
-    if (typeof id_tahap === "string") {
-      const data = await tiketService.getByTahapId(id_tahap);
-      res.status(200).json({ data });
-      return;
-    }
-
-    if (typeof id_kontak === "string") {
-      const data = await tiketService.getByKontakId(id_kontak);
-      res.status(200).json({ data });
-      return;
-    }
-
-    const data = await tiketService.getAll();
-    res.status(200).json({ data });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   PurchaseOrder,
+  PurchaseOrderFilters,
   CreatePurchaseOrderInput,
   UpdatePurchaseOrderInput,
 } from "./purchase-order.types.ts";
@@ -28,10 +32,30 @@ export const purchaseOrderRepository = {
     });
   },
 
-  async getAll(): Promise<PurchaseOrder[]> {
-    return prisma.purchaseOrder.findMany({
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: PurchaseOrderFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: PurchaseOrder[]; total: number }> {
+    const where: Prisma.PurchaseOrderWhereInput = {
+      id_penawaran: filters.id_penawaran,
+      id_tiket: filters.id_tiket,
+      status: filters.status,
+      AND: [
+        ...(filters.no_po ? [{ no_po: filters.no_po }] : []),
+        ...(filters.search ? [{ no_po: { contains: filters.search } }] : []),
+      ],
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.purchaseOrder.findMany({
+        where,
+        orderBy: [{ created_at: pagination.order }, { id_po: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.purchaseOrder.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<PurchaseOrder | null> {

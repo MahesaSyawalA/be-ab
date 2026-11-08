@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   RiwayatTahap,
+  RiwayatTahapFilters,
   CreateRiwayatTahapInput,
   UpdateRiwayatTahapInput,
 } from "./riwayat-tahap.types.ts";
@@ -18,10 +22,27 @@ export const riwayatTahapRepository = {
     });
   },
 
-  async getAll(): Promise<RiwayatTahap[]> {
-    return prisma.riwayatTahap.findMany({
-      orderBy: { waktu_pindah: "desc" },
-    });
+  async getAll(
+    filters: RiwayatTahapFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: RiwayatTahap[]; total: number }> {
+    const where: Prisma.RiwayatTahapWhereInput = {
+      id_tiket: filters.id_tiket,
+      id_user: filters.id_user,
+      id_tahap_asal: filters.id_tahap_asal,
+      id_tahap_tujuan: filters.id_tahap_tujuan,
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.riwayatTahap.findMany({
+        where,
+        orderBy: [{ waktu_pindah: pagination.order }, { id_riwayat: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.riwayatTahap.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<RiwayatTahap | null> {

@@ -1,5 +1,6 @@
 ﻿import type { Request, Response } from "express";
 import { buktiKunjunganService } from "./bukti-kunjungan.service.ts";
+import { buktiKunjunganQuerySchema } from "./bukti-kunjungan.validation.ts";
 import type {
   CreateBuktiKunjunganInput,
   UpdateBuktiKunjunganInput,
@@ -46,16 +47,19 @@ export const buktiKunjunganController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_aktivitas } = req.query;
+    const parsed = buktiKunjunganQuerySchema.safeParse(req.query);
 
-    if (typeof id_aktivitas === "string") {
-      const data = await buktiKunjunganService.getByAktivitasId(id_aktivitas);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    const data = await buktiKunjunganService.getAll();
-    res.status(200).json({ data });
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await buktiKunjunganService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {
@@ -99,7 +103,6 @@ export const buktiKunjunganController = {
 
     const bukti = await buktiKunjunganService.update(id, data);
 
-    // Remove the old objects only after the DB update succeeded
     if (image) await deleteFromR2(existing.img_url);
     if (doc) await deleteFromR2(existing.file_url);
 

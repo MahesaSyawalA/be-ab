@@ -21,3 +21,9 @@ export interface UpdateNotifikasiInput {
   isRead?: boolean;
   message?: string;
 }
+
+export interface NotifikasiFilters {
+  id_tiket?: string;
+  isRead?: boolean;
+  search?: string;
+}

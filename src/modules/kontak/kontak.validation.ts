@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
 
 export const createKontakSchema = z.object({
   id_pelanggan: z.uuid({ message: "Pilih pelanggan yang sesuai terlebih dahulu" }),
@@ -11,3 +12,8 @@ export const createKontakSchema = z.object({
 });
 
 export const updateKontakSchema = createKontakSchema.partial();
+
+export const kontakQuerySchema = paginationQuerySchema.extend({
+  id_pelanggan: z.uuid({ message: "ID Pelanggan tidak valid" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+});

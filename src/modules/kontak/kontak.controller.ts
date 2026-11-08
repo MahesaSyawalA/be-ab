@@ -1,5 +1,6 @@
 ﻿import type { Request, Response } from "express";
 import { kontakService } from "./kontak.service.ts";
+import { kontakQuerySchema } from "./kontak.validation.ts";
 import type { CreateKontakInput, UpdateKontakInput } from "./kontak.types.ts";
 
 export const kontakController = {
@@ -14,16 +15,19 @@ export const kontakController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_pelanggan } = req.query;
+    const parsed = kontakQuerySchema.safeParse(req.query);
 
-    if (typeof id_pelanggan === "string") {
-      const data = await kontakService.getByPelangganId(id_pelanggan);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    const data = await kontakService.getAll();
-    res.status(200).json({ data });
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await kontakService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

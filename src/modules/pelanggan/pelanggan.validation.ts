@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
 
 const parseJsonString = (value: unknown) => {
   if (typeof value !== "string") return value;
@@ -50,3 +51,13 @@ export const createPelangganSchema = pelangganBaseSchema
 export const updatePelangganSchema = pelangganBaseSchema
   .omit({ kontak: true })
   .partial();
+
+export const pelangganQuerySchema = paginationQuerySchema.extend({
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+  tipe_outlet: z.string().trim().min(1, { message: "Tipe outlet tidak boleh kosong" }).optional(),
+  status: z
+    .enum(["Aktif", "Nonaktif", "Prospek"], {
+      message: "Status harus Aktif, Nonaktif, atau Prospek",
+    })
+    .optional(),
+});

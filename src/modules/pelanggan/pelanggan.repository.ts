@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Pelanggan,
+  PelangganFilters,
   PelangganWithDetails,
   CreatePelangganData,
   UpdatePelangganData,
@@ -58,18 +62,37 @@ export const pelangganRepository = {
     return mapToPelangganWithDetails(created);
   },
 
-  async getAll(): Promise<PelangganWithDetails[]> {
-    const list = await prisma.pelanggan.findMany({
-      include: {
-        kontak: true,
-        _count: {
-          select: { tiket: true },
-        },
-      },
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: PelangganFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: PelangganWithDetails[]; total: number }> {
+    const where: Prisma.PelangganWhereInput = {
+      tipe_outlet: filters.tipe_outlet,
+      status: filters.status,
+      ...(filters.search && {
+        OR: [
+          { nama_outlet: { contains: filters.search } },
+          { alamat: { contains: filters.search } },
+        ],
+      }),
+    };
 
-    return list.map(mapToPelangganWithDetails);
+    const [list, total] = await prisma.$transaction([
+      prisma.pelanggan.findMany({
+        where,
+        include: {
+          kontak: true,
+          _count: {
+            select: { tiket: true },
+          },
+        },
+        orderBy: [{ created_at: pagination.order }, { id_pelanggan: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.pelanggan.count({ where }),
+    ]);
+
+    return { items: list.map(mapToPelangganWithDetails), total };
   },
 
   async getById(id: string): Promise<PelangganWithDetails | null> {

@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { riwayatTahapService } from "./riwayat-tahap.service.ts";
+import { riwayatTahapQuerySchema } from "./riwayat-tahap.validation.ts";
 
 export const riwayatTahapController = {
   async create(req: Request, res: Response) {
@@ -12,16 +13,19 @@ export const riwayatTahapController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_tiket } = req.query;
+    const parsed = riwayatTahapQuerySchema.safeParse(req.query);
 
-    if (typeof id_tiket === "string") {
-      const data = await riwayatTahapService.getByTiketId(id_tiket);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    const data = await riwayatTahapService.getAll();
-    res.status(200).json({ data });
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await riwayatTahapService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

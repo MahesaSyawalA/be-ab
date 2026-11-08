@@ -40,4 +40,5 @@ export type UploadedFile = Express.Multer.File;
 export interface EvidenceFilters {
     id_aktivitas?: string;
     tipe?: JenisEvidence;
+    search?: string;
 }

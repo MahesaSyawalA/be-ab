@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { notifikasiService } from "./notifikasi.service.ts";
+import { notifikasiQuerySchema } from "./notifikasi.validation.ts";
 
 export const notifikasiController = {
   async create(req: Request, res: Response) {
@@ -12,16 +13,19 @@ export const notifikasiController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_tiket } = req.query;
+    const parsed = notifikasiQuerySchema.safeParse(req.query);
 
-    if (typeof id_tiket === "string") {
-      const data = await notifikasiService.getByTiketId(id_tiket);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    const data = await notifikasiService.getAll();
-    res.status(200).json({ data });
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await notifikasiService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

@@ -38,3 +38,10 @@ export interface UpdateTahapKanbanInput {
   is_aktif?: boolean;
   dotColor?: string;
 }
+
+export interface TahapKanbanFilters {
+  jenis_tahap?: JenisTahap;
+  is_aktif?: boolean;
+  is_tahap_akhir?: boolean;
+  search?: string;
+}

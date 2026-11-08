@@ -1,4 +1,7 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type { CreateEvidenceData, Evidence, EvidenceFilters, UpdateEvidenceData } from "./evidence.types.ts";
 
 export const evidenceRepository = {
@@ -6,11 +9,26 @@ export const evidenceRepository = {
         return prisma.evidence.create({ data });
     },
 
-    async getAll({ id_aktivitas, tipe }: EvidenceFilters = {}): Promise<Evidence[]> {
-        return prisma.evidence.findMany({
-            where: { id_aktivitas, tipe },
-            orderBy: { waktu_upload: "desc" },
-        });
+    async getAll(
+        { id_aktivitas, tipe, search }: EvidenceFilters,
+        pagination: PaginationParams,
+    ): Promise<{ items: Evidence[]; total: number }> {
+        const where: Prisma.EvidenceWhereInput = {
+            id_aktivitas,
+            tipe,
+            ...(search && { deskripsi: { contains: search } }),
+        };
+
+        const [items, total] = await prisma.$transaction([
+            prisma.evidence.findMany({
+                where,
+                orderBy: [{ waktu_upload: pagination.order }, { id: "asc" }],
+                ...toSkipTake(pagination),
+            }),
+            prisma.evidence.count({ where }),
+        ]);
+
+        return { items, total };
     },
 
     async getById(id: string): Promise<Evidence | null> {
@@ -18,7 +36,10 @@ export const evidenceRepository = {
     },
 
     async getByAktivitasId(idAktivitas: string): Promise<Evidence[]> {
-        return this.getAll({ id_aktivitas: idAktivitas });
+        return prisma.evidence.findMany({
+            where: { id_aktivitas: idAktivitas },
+            orderBy: { waktu_upload: "desc" },
+        });
     },
 
     async update(id: string, data: UpdateEvidenceData): Promise<Evidence | null> {

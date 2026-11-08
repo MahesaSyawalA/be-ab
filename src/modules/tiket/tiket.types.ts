@@ -11,6 +11,7 @@ import type {
 
 export type TiketStatus = "open" | "won" | "lost";
 export type TiketPrioritas = "rendah" | "sedang" | "tinggi";
+export type TiketSortBy = "created_at" | "posisi" | "estimasi_closing" | "estimasi_nilai";
 
 export interface Tiket {
   id_tiket: string;
@@ -98,4 +99,14 @@ export interface UpdateTiketInput {
   tanggal_penawaran_awal?: string | Date | null;
   tanggal_closing?: string | Date | null;
   alasan_lost?: string | null;
+}
+
+export interface TiketFilters {
+  id_pelanggan?: string;
+  id_user?: string;
+  id_tahap?: string;
+  id_kontak?: string;
+  status?: TiketStatus;
+  prioritas?: TiketPrioritas;
+  search?: string;
 }

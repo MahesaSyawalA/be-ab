@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
 
 export const createBuktiKunjunganSchema = z.object({
   id_aktivitas: z.uuid({ message: "ID Aktivitas tidak valid atau belum dipilih" }),
@@ -11,3 +12,11 @@ export const createBuktiKunjunganSchema = z.object({
 });
 
 export const updateBuktiKunjunganSchema = createBuktiKunjunganSchema.partial();
+
+export const buktiKunjunganQuerySchema = paginationQuerySchema.extend({
+  id_aktivitas: z.uuid({ message: "ID Aktivitas tidak valid" }).optional(),
+  dalam_radius: z
+    .enum(["true", "false"], { message: "dalam_radius harus true atau false" })
+    .transform((v) => v === "true")
+    .optional(),
+});

@@ -29,3 +29,10 @@ export interface UpdateRiwayatTahapInput {
   id_user?: string;
   waktu_pindah?: string | Date;
 }
+
+export interface RiwayatTahapFilters {
+  id_tiket?: string;
+  id_user?: string;
+  id_tahap_asal?: string;
+  id_tahap_tujuan?: string;
+}

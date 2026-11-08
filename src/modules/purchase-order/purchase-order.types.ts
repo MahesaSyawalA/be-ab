@@ -42,3 +42,11 @@ export interface UpdatePurchaseOrderInput {
   nilai_revenue?: number;
   tanggal_revenue?: string | Date | null;
 }
+
+export interface PurchaseOrderFilters {
+  id_penawaran?: string;
+  id_tiket?: string;
+  no_po?: string;
+  status?: StatusPurchaseOrder;
+  search?: string;
+}

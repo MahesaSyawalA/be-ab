@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Penawaran,
+  PenawaranFilters,
   CreatePenawaranInput,
   UpdatePenawaranInput,
 } from "./penawaran.types.ts";
@@ -21,10 +25,30 @@ export const penawaranRepository = {
     });
   },
 
-  async getAll(): Promise<Penawaran[]> {
-    return prisma.penawaran.findMany({
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: PenawaranFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: Penawaran[]; total: number }> {
+    const where: Prisma.PenawaranWhereInput = {
+      id_tiket: filters.id_tiket,
+      id_aktivitas: filters.id_aktivitas,
+      status: filters.status,
+      AND: [
+        ...(filters.no_penawaran ? [{ no_penawaran: filters.no_penawaran }] : []),
+        ...(filters.search ? [{ no_penawaran: { contains: filters.search } }] : []),
+      ],
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.penawaran.findMany({
+        where,
+        orderBy: [{ created_at: pagination.order }, { id_penawaran: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.penawaran.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<Penawaran | null> {

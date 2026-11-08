@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { squadService } from "./squad.service.ts";
+import { squadQuerySchema } from "./squad.validation.ts";
 
 export const squadsController = {
   async create(req: Request, res: Response) {
@@ -12,19 +13,19 @@ export const squadsController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_supervisor } = req.query;
+    const parsed = squadQuerySchema.safeParse(req.query);
 
-    if (typeof id_supervisor === "string") {
-      const data = await squadService.getBySupervisorId(id_supervisor);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    const squads = await squadService.getAll();
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await squadService.getAll(filters, { page, limit, order });
 
-    res.status(200).json({
-      data: squads,
-    });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

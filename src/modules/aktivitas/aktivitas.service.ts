@@ -1,6 +1,9 @@
-﻿import { aktivitasRepository } from "./aktivitas.repository.ts";
+﻿import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
+import { aktivitasRepository } from "./aktivitas.repository.ts";
 import type {
   Aktivitas,
+  AktivitasFilters,
   CreateAktivitasInput,
   UpdateAktivitasInput,
 } from "./aktivitas.types.ts";
@@ -10,8 +13,9 @@ export const aktivitasService = {
     return aktivitasRepository.create(data);
   },
 
-  async getAll(): Promise<Aktivitas[]> {
-    return aktivitasRepository.getAll();
+  async getAll(filters: AktivitasFilters, pagination: PaginationParams) {
+    const { items, total } = await aktivitasRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string) {

@@ -30,3 +30,8 @@ export interface UpdateBuktiKunjunganInput {
   img_url?: string;
   file_url?: string | null;
 }
+
+export interface BuktiKunjunganFilters {
+  id_aktivitas?: string;
+  dalam_radius?: boolean;
+}

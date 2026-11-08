@@ -11,7 +11,7 @@ export interface Squad {
     updated_at: Date | string;
 }
 
-/** Anggota/supervisor squad — subset `User` tanpa `password_hash`. */
+/** Anggota/supervisor squad - subset `User` tanpa `password_hash`. */
 export type SquadMember = Pick<User, "id_user" | "nama" | "role" | "email" | "no_telp">;
 
 /** Squad beserta supervisor, anggota, dan progres tiket (won / total) anggotanya. */
@@ -39,4 +39,11 @@ export interface UpdateSquadInput {
     wilayah?: string;
     is_active?: boolean;
     member_ids?: string[];
+}
+
+export interface SquadFilters {
+    id_supervisor?: string;
+    is_active?: boolean;
+    wilayah?: string;
+    search?: string;
 }

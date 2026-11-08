@@ -35,3 +35,11 @@ export interface UpdatePenawaranInput {
   status?: StatusPenawaran;
   url_file_penawaran?: string;
 }
+
+export interface PenawaranFilters {
+  id_tiket?: string;
+  id_aktivitas?: string;
+  no_penawaran?: string;
+  status?: StatusPenawaran;
+  search?: string;
+}

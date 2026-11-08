@@ -1,5 +1,6 @@
 ﻿import type { Request, Response } from "express";
 import { aktivitasService } from "./aktivitas.service.ts";
+import { aktivitasQuerySchema } from "./aktivitas.validation.ts";
 
 export const aktivitasController = {
   async create(req: Request, res: Response) {
@@ -12,22 +13,19 @@ export const aktivitasController = {
   },
 
   async getAll(req: Request, res: Response) {
-    const { id_user, id_tiket } = req.query;
+    const parsed = aktivitasQuerySchema.safeParse(req.query);
 
-    if (typeof id_user === "string") {
-      const data = await aktivitasService.getByUserId(id_user);
-      res.status(200).json({ data });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
       return;
     }
 
-    if (typeof id_tiket === "string") {
-      const data = await aktivitasService.getByTiketId(id_tiket);
-      res.status(200).json({ data });
-      return;
-    }
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await aktivitasService.getAll(filters, { page, limit, order });
 
-    const data = await aktivitasService.getAll();
-    res.status(200).json({ data });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

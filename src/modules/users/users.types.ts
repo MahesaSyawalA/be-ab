@@ -1,4 +1,5 @@
 export type UserRole = "sales" | "sales_manager" | "director";
+export type UserSortBy = "created_at" | "nama" | "role";
 
 /** Bentuk lengkap termasuk `password_hash` — hanya untuk keperluan internal (auth). */
 export interface User {
@@ -34,6 +35,12 @@ export interface UpdateUserInput {
     no_telp?: string;
     /** Bila diisi, password akan di-hash ulang. */
     password?: string;
+}
+
+export interface UserFilters {
+    id_squad?: string;
+    role?: UserRole;
+    search?: string;
 }
 
 /** Bentuk yang benar-benar dikirim ke database. */

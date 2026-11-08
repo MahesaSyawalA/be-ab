@@ -1,8 +1,11 @@
 import { HttpError } from "../../common/utils/http-error.ts";
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
 import { pelangganRepository } from "./pelanggan.repository.ts";
 import type {
   Pelanggan,
+  PelangganFilters,
   PelangganWithDetails,
   CreatePelangganInput,
   UpdatePelangganInput,
@@ -44,8 +47,9 @@ export const pelangganService = {
     }
   },
 
-  async getAll(): Promise<PelangganWithDetails[]> {
-    return pelangganRepository.getAll();
+  async getAll(filters: PelangganFilters, pagination: PaginationParams) {
+    const { items, total } = await pelangganRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<PelangganWithDetails | null> {

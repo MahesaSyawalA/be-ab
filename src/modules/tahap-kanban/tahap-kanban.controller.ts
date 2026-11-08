@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { tahapKanbanService } from "./tahap-kanban.service.ts";
+import { tahapKanbanQuerySchema } from "./tahap-kanban.validation.ts";
 
 export const tahapKanbanController = {
   async create(req: Request, res: Response) {
@@ -11,12 +12,20 @@ export const tahapKanbanController = {
     });
   },
 
-  async getAll(_req: Request, res: Response) {
-    const data = await tahapKanbanService.getAll();
+  async getAll(req: Request, res: Response) {
+    const parsed = tahapKanbanQuerySchema.safeParse(req.query);
 
-    res.status(200).json({
-      data,
-    });
+    if (!parsed.success) {
+      res.status(400).json({
+        message: parsed.error.issues[0]?.message ?? "Query tidak valid",
+      });
+      return;
+    }
+
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await tahapKanbanService.getAll(filters, { page, limit, order });
+
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {

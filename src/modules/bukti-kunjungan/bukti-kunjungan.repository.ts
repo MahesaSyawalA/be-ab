@@ -1,6 +1,10 @@
 ﻿import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   BuktiKunjungan,
+  BuktiKunjunganFilters,
   CreateBuktiKunjunganInput,
   UpdateBuktiKunjunganInput,
 } from "./bukti-kunjungan.types.ts";
@@ -21,10 +25,25 @@ export const buktiKunjunganRepository = {
     });
   },
 
-  async getAll(): Promise<BuktiKunjungan[]> {
-    return prisma.buktiKunjungan.findMany({
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: BuktiKunjunganFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: BuktiKunjungan[]; total: number }> {
+    const where: Prisma.BuktiKunjunganWhereInput = {
+      id_aktivitas: filters.id_aktivitas,
+      dalam_radius: filters.dalam_radius,
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.buktiKunjungan.findMany({
+        where,
+        orderBy: [{ created_at: pagination.order }, { id_bukti: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.buktiKunjungan.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<BuktiKunjungan | null> {

@@ -1,6 +1,9 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { notifikasiRepository } from "./notifikasi.repository.ts";
 import type {
   Notifikasi,
+  NotifikasiFilters,
   CreateNotifikasiInput,
   UpdateNotifikasiInput,
 } from "./notifikasi.types.ts";
@@ -10,8 +13,9 @@ export const notifikasiService = {
     return notifikasiRepository.create(data);
   },
 
-  async getAll(): Promise<Notifikasi[]> {
-    return notifikasiRepository.getAll();
+  async getAll(filters: NotifikasiFilters, pagination: PaginationParams) {
+    const { items, total } = await notifikasiRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<Notifikasi | null> {

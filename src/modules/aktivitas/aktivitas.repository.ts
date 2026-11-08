@@ -1,6 +1,10 @@
 ﻿import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Aktivitas,
+  AktivitasFilters,
   CreateAktivitasInput,
   UpdateAktivitasInput,
 } from "./aktivitas.types.ts";
@@ -10,6 +14,12 @@ function toDate(val?: string | Date | null): Date | null | undefined {
   if (val === null) return null;
   return new Date(val);
 }
+
+const listInclude = {
+  user: { select: { nama: true, role: true } },
+  bukti_kunjungan: true,
+  evidence: true,
+} satisfies Prisma.AktivitasInclude;
 
 export const aktivitasRepository = {
   async create(data: CreateAktivitasInput): Promise<Aktivitas> {
@@ -25,10 +35,25 @@ export const aktivitasRepository = {
     });
   },
 
-  async getAll(): Promise<Aktivitas[]> {
-    return prisma.aktivitas.findMany({
-      orderBy: { tanggal: "desc" },
-    });
+  async getAll(filters: AktivitasFilters, pagination: PaginationParams) {
+    const where: Prisma.AktivitasWhereInput = {
+      id_user: filters.id_user,
+      id_tiket: filters.id_tiket,
+      jenis_kegiatan: filters.jenis_kegiatan,
+      ...(filters.search && { catatan: { contains: filters.search } }),
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.aktivitas.findMany({
+        where,
+        include: listInclude,
+        orderBy: [{ tanggal: pagination.order }, { id_aktivitas: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.aktivitas.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string) {

@@ -1,6 +1,8 @@
 import { prisma } from "../../config/prisma.ts";
 import type { Prisma } from "@prisma/client";
-import type { CreateSquadInput, SquadWithDetails, UpdateSquadInput } from "./squad.types.ts";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
+import type { CreateSquadInput, SquadFilters, SquadWithDetails, UpdateSquadInput } from "./squad.types.ts";
 
 const memberSelect = { id_user: true, nama: true, role: true, email: true, no_telp: true } as const;
 const detailInclude = {
@@ -54,13 +56,33 @@ export const squadRepository = {
         return (await withProgress([squad]))[0];
     },
 
-    async getAll(where?: Prisma.SquadWhereInput): Promise<SquadWithDetails[]> {
-        const squads = await prisma.squad.findMany({
-            where,
-            orderBy: { created_at: "desc" },
-            include: detailInclude,
-        });
-        return withProgress(squads);
+    async getAll(
+        filters: SquadFilters,
+        pagination: PaginationParams,
+    ): Promise<{ items: SquadWithDetails[]; total: number }> {
+        const where: Prisma.SquadWhereInput = {
+            id_supervisor: filters.id_supervisor,
+            is_active: filters.is_active,
+            wilayah: filters.wilayah,
+            ...(filters.search && {
+                OR: [
+                    { nama_squad: { contains: filters.search } },
+                    { kode_squad: { contains: filters.search } },
+                ],
+            }),
+        };
+
+        const [squads, total] = await prisma.$transaction([
+            prisma.squad.findMany({
+                where,
+                include: detailInclude,
+                orderBy: [{ created_at: pagination.order }, { id_squad: "asc" }],
+                ...toSkipTake(pagination),
+            }),
+            prisma.squad.count({ where }),
+        ]);
+
+        return { items: await withProgress(squads), total };
     },
 
     async getById(id: string): Promise<SquadWithDetails | null> {
@@ -72,7 +94,12 @@ export const squadRepository = {
     },
 
     async getBySupervisorId(idSupervisor: string): Promise<SquadWithDetails[]> {
-        return this.getAll({ id_supervisor: idSupervisor });
+        const squads = await prisma.squad.findMany({
+            where: { id_supervisor: idSupervisor },
+            orderBy: { created_at: "desc" },
+            include: detailInclude,
+        });
+        return withProgress(squads);
     },
 
     async update(id: string, { member_ids, ...data }: UpdateSquadInput): Promise<SquadWithDetails | null> {

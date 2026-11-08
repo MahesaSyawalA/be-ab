@@ -1,5 +1,7 @@
 import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
 import { HttpError } from "../../common/utils/http-error.ts";
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { evidenceRepository } from "./evidence.repository.ts";
 import type {
     CreateEvidenceInput,
@@ -98,7 +100,10 @@ export const evidenceService = {
         }
     },
 
-    getAll: (filters?: EvidenceFilters): Promise<Evidence[]> => evidenceRepository.getAll(filters),
+    async getAll(filters: EvidenceFilters, pagination: PaginationParams) {
+        const { items, total } = await evidenceRepository.getAll(filters, pagination);
+        return { data: items, meta: buildMeta(total, pagination) };
+    },
 
     getById: (id: string): Promise<Evidence | null> => evidenceRepository.getById(id),
 

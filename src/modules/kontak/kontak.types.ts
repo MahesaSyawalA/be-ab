@@ -30,3 +30,8 @@ export interface UpdateKontakInput {
   kategori_peran?: string | null;
   inisial?: string | null;
 }
+
+export interface KontakFilters {
+  id_pelanggan?: string;
+  search?: string;
+}

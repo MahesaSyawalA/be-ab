@@ -1,6 +1,9 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { penawaranRepository } from "./penawaran.repository.ts";
 import type {
   Penawaran,
+  PenawaranFilters,
   CreatePenawaranInput,
   UpdatePenawaranInput,
 } from "./penawaran.types.ts";
@@ -15,8 +18,9 @@ export const penawaranService = {
     return penawaranRepository.create(data);
   },
 
-  async getAll(): Promise<Penawaran[]> {
-    return penawaranRepository.getAll();
+  async getAll(filters: PenawaranFilters, pagination: PaginationParams) {
+    const { items, total } = await penawaranRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<Penawaran | null> {

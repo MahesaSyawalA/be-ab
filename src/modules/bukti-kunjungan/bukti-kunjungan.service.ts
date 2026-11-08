@@ -1,6 +1,9 @@
+import { buildMeta } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { buktiKunjunganRepository } from "./bukti-kunjungan.repository.ts";
 import type {
   BuktiKunjungan,
+  BuktiKunjunganFilters,
   CreateBuktiKunjunganInput,
   UpdateBuktiKunjunganInput,
 } from "./bukti-kunjungan.types.ts";
@@ -10,8 +13,9 @@ export const buktiKunjunganService = {
     return buktiKunjunganRepository.create(data);
   },
 
-  async getAll(): Promise<BuktiKunjungan[]> {
-    return buktiKunjunganRepository.getAll();
+  async getAll(filters: BuktiKunjunganFilters, pagination: PaginationParams) {
+    const { items, total } = await buktiKunjunganRepository.getAll(filters, pagination);
+    return { data: items, meta: buildMeta(total, pagination) };
   },
 
   async getById(id: string): Promise<BuktiKunjungan | null> {

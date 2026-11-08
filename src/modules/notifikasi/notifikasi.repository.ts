@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma.ts";
+import type { Prisma } from "@prisma/client";
+import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
+import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import type {
   Notifikasi,
+  NotifikasiFilters,
   CreateNotifikasiInput,
   UpdateNotifikasiInput,
 } from "./notifikasi.types.ts";
@@ -17,10 +21,31 @@ export const notifikasiRepository = {
     });
   },
 
-  async getAll(): Promise<Notifikasi[]> {
-    return prisma.notifikasi.findMany({
-      orderBy: { created_at: "desc" },
-    });
+  async getAll(
+    filters: NotifikasiFilters,
+    pagination: PaginationParams,
+  ): Promise<{ items: Notifikasi[]; total: number }> {
+    const where: Prisma.NotifikasiWhereInput = {
+      id_tiket: filters.id_tiket,
+      isRead: filters.isRead,
+      ...(filters.search && {
+        OR: [
+          { title: { contains: filters.search } },
+          { message: { contains: filters.search } },
+        ],
+      }),
+    };
+
+    const [items, total] = await prisma.$transaction([
+      prisma.notifikasi.findMany({
+        where,
+        orderBy: [{ created_at: pagination.order }, { id_notifikasi: "asc" }],
+        ...toSkipTake(pagination),
+      }),
+      prisma.notifikasi.count({ where }),
+    ]);
+
+    return { items, total };
   },
 
   async getById(id: string): Promise<Notifikasi | null> {

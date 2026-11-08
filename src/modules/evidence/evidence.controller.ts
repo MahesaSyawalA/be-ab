@@ -22,11 +22,10 @@ export const evidenceController = {
       return;
     }
 
-    const evidences = await evidenceService.getAll(parsed.data);
+    const { page, limit, order, ...filters } = parsed.data;
+    const { data, meta } = await evidenceService.getAll(filters, { page, limit, order });
 
-    res.status(200).json({
-      data: evidences,
-    });
+    res.status(200).json({ data, meta });
   },
 
   async getById(req: Request, res: Response) {
