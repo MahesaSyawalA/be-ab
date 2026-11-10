@@ -11,6 +11,6 @@ router.get("/", usersController.getAll);
 router.get("/:id", usersController.getById);
 router.put("/:id", validateBody(updateUserSchema), usersController.update);
 router.patch("/:id", validateBody(updateUserSchema), usersController.update);
-router.delete("/:id", usersController.delete);
+router.delete("/:id", requireRole("director"), usersController.delete);
 
 export default router;
