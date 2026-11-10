@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 import { checkOrigin } from "./common/middleware/check-origin.ts";
 import { errorHandler } from "./common/middleware/error-handler.ts";
+import { requireAuth } from "./common/middleware/require-auth.ts";
 import { env } from "./config/env.ts";
 import authRoutes from "./modules/auth/auth.routes.ts";
 import userRoutes from "./modules/users/users.routes.ts";
@@ -35,23 +36,23 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(checkOrigin);
 
-// Routes
 app.use("/api", generalRoutes);
-app.use("/api/pusher", messagesRouter);
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/squads", squadRoutes);
-app.use("/api/pelanggan", pelangganRoutes);
-app.use("/api/kontak", kontakRoutes);
-app.use("/api/tahap-kanban", tahapKanbanRoutes);
-app.use("/api/tiket", tiketRoutes);
-app.use("/api/riwayat-tahap", riwayatTahapRoutes);
-app.use("/api/aktivitas", aktivitasRoutes);
-app.use("/api/bukti-kunjungan", buktiKunjunganRoutes);
-app.use("/api/penawaran", penawaranRoutes);
-app.use("/api/purchase-order", purchaseOrderRoutes);
-app.use("/api/notifikasi", notifikasiRoutes);
-app.use("/api/evidence", evidenceRoutes);
+
+app.use("/api/pusher", requireAuth, messagesRouter);
+app.use("/api/users", requireAuth, userRoutes);
+app.use("/api/squads", requireAuth, squadRoutes);
+app.use("/api/pelanggan", requireAuth, pelangganRoutes);
+app.use("/api/kontak", requireAuth, kontakRoutes);
+app.use("/api/tahap-kanban", requireAuth, tahapKanbanRoutes);
+app.use("/api/tiket", requireAuth, tiketRoutes);
+app.use("/api/riwayat-tahap", requireAuth, riwayatTahapRoutes);
+app.use("/api/aktivitas", requireAuth, aktivitasRoutes);
+app.use("/api/bukti-kunjungan", requireAuth, buktiKunjunganRoutes);
+app.use("/api/penawaran", requireAuth, penawaranRoutes);
+app.use("/api/purchase-order", requireAuth, purchaseOrderRoutes);
+app.use("/api/notifikasi", requireAuth, notifikasiRoutes);
+app.use("/api/evidence", requireAuth, evidenceRoutes);
 app.use(errorHandler);
 
 export default app;
