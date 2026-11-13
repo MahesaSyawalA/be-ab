@@ -14,6 +14,8 @@ interface DummyAccount {
   role: UserRole;
   email: string;
   no_telp: string;
+  is_active?: boolean;
+  must_change_password?: boolean;
 }
 
 const PASSWORD = "rahasia123";
@@ -24,18 +26,40 @@ const ACCOUNTS: DummyAccount[] = [
     role: "sales",
     email: "sales@ab-medical.local",
     no_telp: "081200000001",
+    is_active: true,
+    must_change_password: false,
   },
   {
     nama: "Sari Manager",
     role: "sales_manager",
     email: "manager@ab-medical.local",
     no_telp: "081200000002",
+    is_active: true,
+    must_change_password: false,
   },
   {
     nama: "Dewi Director",
     role: "director",
     email: "director@ab-medical.local",
     no_telp: "081200000003",
+    is_active: true,
+    must_change_password: false,
+  },
+  {
+    nama: "Joko Nonaktif",
+    role: "sales",
+    email: "nonaktif@ab-medical.local",
+    no_telp: "081200000004",
+    is_active: false,
+    must_change_password: false,
+  },
+  {
+    nama: "Rudi Reset Password",
+    role: "sales",
+    email: "reset@ab-medical.local",
+    no_telp: "081200000005",
+    is_active: true,
+    must_change_password: true,
   },
 ];
 
@@ -53,6 +77,8 @@ async function main(): Promise<void> {
         role: account.role,
         no_telp: account.no_telp,
         password_hash,
+        is_active: account.is_active ?? true,
+        must_change_password: account.must_change_password ?? false,
       },
       create: {
         nama: account.nama,
@@ -60,10 +86,14 @@ async function main(): Promise<void> {
         email: account.email,
         no_telp: account.no_telp,
         password_hash,
+        is_active: account.is_active ?? true,
+        must_change_password: account.must_change_password ?? false,
       },
     });
 
-    console.log(`  ${user.role.padEnd(14)} ${user.email}  (id: ${user.id_user})`);
+    const statusStr = user.is_active ? "[AKTIF]" : "[NONAKTIF]";
+    const flagStr = user.must_change_password ? "(must change pwd)" : "";
+    console.log(`  ${user.role.padEnd(14)} ${user.email.padEnd(30)} ${statusStr.padEnd(12)} ${flagStr} (id: ${user.id_user})`);
   }
 
   console.log("");

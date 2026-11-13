@@ -203,13 +203,15 @@ async function main() {
   const salesIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
 
   const users: Prisma.UserCreateManyInput[] = [
-    { id_user: idDirector, nama: "Hendra Wijaya", role: "director", email: "director@abmedical.test", no_telp: "081200000001", password_hash: passwordHash },
-    { id_user: idMgrBdg, id_squad: squadBandung, nama: "Rina Kusuma", role: "sales_manager", email: "manager.bandung@abmedical.test", no_telp: "081200000002", password_hash: passwordHash },
-    { id_user: idMgrJkt, id_squad: squadJakarta, nama: "Dimas Pratama", role: "sales_manager", email: "manager.jakarta@abmedical.test", no_telp: "081200000003", password_hash: passwordHash },
-    { id_user: salesIds[0]!, id_squad: squadBandung, nama: "Andi Saputra", role: "sales", email: "andi@abmedical.test", no_telp: "081200000011", password_hash: passwordHash },
-    { id_user: salesIds[1]!, id_squad: squadBandung, nama: "Siti Rahma", role: "sales", email: "siti@abmedical.test", no_telp: "081200000012", password_hash: passwordHash },
-    { id_user: salesIds[2]!, id_squad: squadJakarta, nama: "Budi Santoso", role: "sales", email: "budi@abmedical.test", no_telp: "081200000013", password_hash: passwordHash },
-    { id_user: salesIds[3]!, id_squad: squadJakarta, nama: "Maya Lestari", role: "sales", email: "maya@abmedical.test", no_telp: "081200000014", password_hash: passwordHash },
+    { id_user: idDirector, nama: "Hendra Wijaya", role: "director", email: "director@abmedical.test", no_telp: "081200000001", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: idMgrBdg, id_squad: squadBandung, nama: "Rina Kusuma", role: "sales_manager", email: "manager.bandung@abmedical.test", no_telp: "081200000002", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: idMgrJkt, id_squad: squadJakarta, nama: "Dimas Pratama", role: "sales_manager", email: "manager.jakarta@abmedical.test", no_telp: "081200000003", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: salesIds[0]!, id_squad: squadBandung, nama: "Andi Saputra", role: "sales", email: "andi@abmedical.test", no_telp: "081200000011", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: salesIds[1]!, id_squad: squadBandung, nama: "Siti Rahma", role: "sales", email: "siti@abmedical.test", no_telp: "081200000012", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: salesIds[2]!, id_squad: squadJakarta, nama: "Budi Santoso", role: "sales", email: "budi@abmedical.test", no_telp: "081200000013", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: salesIds[3]!, id_squad: squadJakarta, nama: "Maya Lestari", role: "sales", email: "maya@abmedical.test", no_telp: "081200000014", password_hash: passwordHash, is_active: true, must_change_password: false },
+    { id_user: randomUUID(), id_squad: squadBandung, nama: "Reza Pratama (Nonaktif)", role: "sales", email: "reza.nonaktif@abmedical.test", no_telp: "081200000098", password_hash: passwordHash, is_active: false, must_change_password: false },
+    { id_user: randomUUID(), id_squad: squadJakarta, nama: "Tono Baru (Ganti Password)", role: "sales", email: "tono.baru@abmedical.test", no_telp: "081200000099", password_hash: passwordHash, is_active: true, must_change_password: true },
   ];
 
   // ---- Tahap Kanban ------------------------------------------------------
