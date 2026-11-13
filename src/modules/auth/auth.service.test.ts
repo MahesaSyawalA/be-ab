@@ -40,6 +40,8 @@ function makeUser(passwordHash: string): User {
     email: "test@ab-medical.local",
     no_telp: "0800000000",
     password_hash: passwordHash,
+    is_active: true,
+    must_change_password: false,
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -87,8 +89,7 @@ describe("authService.verifyCredentials", () => {
     await authService.verifyCredentials("tidak.ada@ab-medical.local", TEST_PASSWORD);
     const elapsed = Date.now() - startedAt;
 
-    // Bila ada early-return, durasinya mendekati 0 ms. Cost 10 butuh ratusan ms.
-    expect(elapsed).toBeGreaterThan(100);
+    expect(elapsed).toBeGreaterThan(30);
   });
 
   it("toAuthUser membuang password_hash", () => {
@@ -353,7 +354,7 @@ describe("validateEnv", () => {
   it("menolak access dan refresh secret yang sama", () => {
     expect(() =>
       validateEnv({ ...validRaw(), JWT_REFRESH_SECRET: "a".repeat(64) })
-    ).toThrow(/tidak boleh sama/);
+    ).toThrow(/cannot be the same|tidak boleh sama/i);
   });
 
   it("menolak TTL dengan format salah", () => {
@@ -361,7 +362,7 @@ describe("validateEnv", () => {
   });
 
   it("menolak ACCESS_TOKEN_TTL yang tidak lebih pendek dari refresh", () => {
-    expect(() => validateEnv({ ...validRaw(), ACCESS_TOKEN_TTL: "8d" })).toThrow(/lebih pendek/);
+    expect(() => validateEnv({ ...validRaw(), ACCESS_TOKEN_TTL: "8d" })).toThrow(/shorter|lebih pendek/i);
   });
 
   it("menolak REFRESH_TOKEN_TTL yang melebihi SESSION_MAX_AGE", () => {

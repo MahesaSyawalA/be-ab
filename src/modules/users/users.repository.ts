@@ -5,10 +5,15 @@ import type { PaginationParams } from "../../common/pagination/pagination.types.
 import type {
     CreateUserRecord,
     PublicUser,
+    PublicUserWithSquad,
     UpdateUserRecord,
     UserFilters,
     UserSortBy,
 } from "./users.types.ts";
+
+const squadSelect = {
+    select: { id_squad: true, nama_squad: true },
+} as const;
 
 function buildOrderBy(
     sortBy: UserSortBy,
@@ -25,7 +30,7 @@ function buildOrderBy(
 }
 
 export const userRepository = {
-    async create(data: CreateUserRecord): Promise<PublicUser> {
+    async create(data: CreateUserRecord): Promise<PublicUserWithSquad> {
         return prisma.user.create({
             data: {
                 id_squad: data.id_squad ?? null,
@@ -36,6 +41,7 @@ export const userRepository = {
                 password_hash: data.password_hash,
             },
             omit: { password_hash: true },
+            include: { squad: squadSelect },
         });
     },
 
@@ -43,10 +49,11 @@ export const userRepository = {
         filters: UserFilters,
         pagination: PaginationParams,
         sortBy: UserSortBy,
-    ): Promise<{ items: PublicUser[]; total: number }> {
+    ): Promise<{ items: PublicUserWithSquad[]; total: number }> {
         const where: Prisma.UserWhereInput = {
             id_squad: filters.id_squad,
             role: filters.role,
+            ...(filters.is_active !== undefined && { is_active: filters.is_active }),
             ...(filters.search && {
                 OR: [
                     { nama: { contains: filters.search } },
@@ -61,6 +68,7 @@ export const userRepository = {
                 where,
                 orderBy: buildOrderBy(sortBy, pagination.order),
                 omit: { password_hash: true },
+                include: { squad: squadSelect },
                 ...toSkipTake(pagination),
             }),
             prisma.user.count({ where }),
@@ -69,10 +77,11 @@ export const userRepository = {
         return { items: rows, total };
     },
 
-    async getById(id: string): Promise<PublicUser | null> {
+    async getById(id: string): Promise<PublicUserWithSquad | null> {
         return prisma.user.findUnique({
             where: { id_user: id },
             omit: { password_hash: true },
+            include: { squad: squadSelect },
         });
     },
 
@@ -86,7 +95,7 @@ export const userRepository = {
     async update(
         id: string,
         data: UpdateUserRecord
-    ): Promise<PublicUser | null> {
+    ): Promise<PublicUserWithSquad | null> {
         const existing = await prisma.user.findUnique({
             where: { id_user: id },
         });
@@ -101,11 +110,35 @@ export const userRepository = {
                 role: data.role,
                 email: data.email,
                 no_telp: data.no_telp,
+                is_active: data.is_active,
                 ...(data.password_hash === undefined
                     ? {}
                     : { password_hash: data.password_hash }),
             },
             omit: { password_hash: true },
+            include: { squad: squadSelect },
+        });
+    },
+
+    async resetPassword(
+        id: string,
+        passwordHash: string,
+        mustChangePassword: boolean,
+    ): Promise<PublicUserWithSquad | null> {
+        const existing = await prisma.user.findUnique({
+            where: { id_user: id },
+        });
+
+        if (!existing) return null;
+
+        return prisma.user.update({
+            where: { id_user: id },
+            data: {
+                password_hash: passwordHash,
+                must_change_password: mustChangePassword,
+            },
+            omit: { password_hash: true },
+            include: { squad: squadSelect },
         });
     },
 

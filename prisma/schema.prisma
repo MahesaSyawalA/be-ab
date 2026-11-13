@@ -88,15 +88,17 @@ model Squad {
 }
 
 model User {
-  id_user       String   @id @default(uuid()) @db.VarChar(36)
-  id_squad      String?  @db.VarChar(36)
-  nama          String   @db.VarChar(150)
-  role          UserRole
-  email         String   @unique @db.VarChar(150)
-  no_telp       String   @db.VarChar(20)
-  password_hash String   @db.VarChar(255)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id_user            String   @id @default(uuid()) @db.VarChar(36)
+  id_squad           String?  @db.VarChar(36)
+  nama               String   @db.VarChar(150)
+  role               UserRole
+  email              String   @unique @db.VarChar(150)
+  no_telp            String   @db.VarChar(20)
+  password_hash      String   @db.VarChar(255)
+  is_active          Boolean  @default(true)
+  must_change_password Boolean @default(false)
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 
   squad             Squad?         @relation("SquadMembers", fields: [id_squad], references: [id_squad], onDelete: SetNull)
   supervised_squads Squad[]        @relation("SupervisorSquads")

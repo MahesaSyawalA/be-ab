@@ -53,6 +53,12 @@ const envSchema = z.object({
   LOGIN_RATE_MAX: z.coerce.number().int().positive().default(10),
 
   BCRYPT_COST: z.coerce.number().int().min(10).max(15).default(12),
+
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  MAIL_FROM: z.string().default("no-reply@ab-medical.com"),
 });
 
 export interface Env {
@@ -72,6 +78,11 @@ export interface Env {
   loginRateWindowSec: number;
   loginRateMax: number;
   bcryptCost: number;
+  smtpHost: string | undefined;
+  smtpPort: number;
+  smtpUser: string | undefined;
+  smtpPass: string | undefined;
+  mailFrom: string;
 }
 
 export function validateEnv(raw: NodeJS.ProcessEnv): Env {
@@ -127,6 +138,11 @@ export function validateEnv(raw: NodeJS.ProcessEnv): Env {
     loginRateWindowSec: parseDuration(data.LOGIN_RATE_WINDOW, "LOGIN_RATE_WINDOW"),
     loginRateMax: data.LOGIN_RATE_MAX,
     bcryptCost: data.BCRYPT_COST,
+    smtpHost: data.SMTP_HOST,
+    smtpPort: data.SMTP_PORT,
+    smtpUser: data.SMTP_USER,
+    smtpPass: data.SMTP_PASS,
+    mailFrom: data.MAIL_FROM,
   };
 }
 

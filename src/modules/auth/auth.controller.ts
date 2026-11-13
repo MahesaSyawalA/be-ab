@@ -17,6 +17,10 @@ export const authController = {
       throw new HttpError(401, "Email atau password salah.");
     }
 
+    if (!user.is_active) {
+      throw new HttpError(403, "Akun Anda dinonaktifkan. Hubungi administrator.");
+    }
+
     const authTime = authService.nowInSeconds();
 
     setAuthCookies(res, {

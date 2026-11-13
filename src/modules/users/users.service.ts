@@ -4,19 +4,36 @@ import { userRepository } from "./users.repository.ts";
 import type {
     CreateUserInput,
     PublicUser,
+    PublicUserWithSquad,
+    ResetPasswordInput,
     UpdateUserInput,
     UserFilters,
     UserSortBy,
 } from "./users.types.ts";
 import { BCRYPT_COST } from "../../config/auth.ts";
 import bcrypt from "bcryptjs";
+import { mailer } from "../../lib/mailer.ts";
+import { env } from "../../config/env.ts";
 
 export const userService = {
-    async create(data: CreateUserInput): Promise<PublicUser> {
-        const { password, ...rest } = data;
+    async create(data: CreateUserInput): Promise<PublicUserWithSquad> {
+        const { password, send_credentials, ...rest } = data;
         const password_hash = await bcrypt.hash(password, BCRYPT_COST);
 
-        return userRepository.create({ ...rest, password_hash });
+        const user = await userRepository.create({ ...rest, password_hash });
+        
+        if (send_credentials && env.smtpHost) {
+            await mailer.sendNewUserCredentials({
+                to: user.email,
+                nama: user.nama,
+                email: user.email,
+                password,
+            }).catch((err) => {
+                console.error("[mailer] Gagal mengirim email kredensial:", err);
+            });
+        }
+
+        return user;
     },
 
     async getAll(
@@ -36,7 +53,7 @@ export const userService = {
         };
     },
 
-    async getById(id: string): Promise<PublicUser | null> {
+    async getById(id: string): Promise<PublicUserWithSquad | null> {
         return userRepository.getById(id);
     },
 
@@ -47,7 +64,7 @@ export const userService = {
     async update(
         id: string,
         data: UpdateUserInput
-    ): Promise<PublicUser | null> {
+    ): Promise<PublicUserWithSquad | null> {
         const { password, ...rest } = data;
 
         const password_hash =
@@ -59,6 +76,18 @@ export const userService = {
             ...rest,
             password_hash,
         });
+    },
+
+    async resetPassword(
+        id: string,
+        data: ResetPasswordInput
+    ): Promise<PublicUserWithSquad | null> {
+        const password_hash = await bcrypt.hash(data.new_password, BCRYPT_COST);
+        return userRepository.resetPassword(
+            id,
+            password_hash,
+            data.must_change_password ?? false,
+        );
     },
 
     async delete(id: string): Promise<PublicUser | null> {
