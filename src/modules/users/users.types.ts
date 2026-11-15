@@ -1,4 +1,4 @@
-export type UserRole = "sales" | "sales_manager" | "director";
+export type UserRole = "sales" | "sales_manager" | "director" | "admin";
 export type UserSortBy = "created_at" | "nama" | "role";
 
 /** Bentuk lengkap termasuk `password_hash` — hanya untuk keperluan internal (auth). */

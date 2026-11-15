@@ -10,6 +10,7 @@ enum UserRole {
   sales
   sales_manager
   director
+  admin
 }
 
 enum JenisTahap {

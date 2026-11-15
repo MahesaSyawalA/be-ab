@@ -18,7 +18,7 @@ import type { User, UserRole } from "../users/users.types.ts";
 import { authRepository } from "./auth.repository.ts";
 import type { AccessTokenPayload, AuthUser, RefreshTokenPayload } from "./auth.types.ts";
 
-const USER_ROLES: readonly UserRole[] = ["sales", "sales_manager", "director"];
+const USER_ROLES: readonly UserRole[] = ["sales", "sales_manager", "director", "admin"];
 
 const INVALID_SESSION_MESSAGE = "Sesi tidak valid atau sudah berakhir. Silakan login kembali.";
 

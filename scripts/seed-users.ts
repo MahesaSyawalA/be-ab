@@ -22,6 +22,14 @@ const PASSWORD = "rahasia123";
 
 const ACCOUNTS: DummyAccount[] = [
   {
+    nama: "Admin System",
+    role: "admin",
+    email: "admin@ab-medical.local",
+    no_telp: "081200000000",
+    is_active: true,
+    must_change_password: false,
+  },
+  {
     nama: "Budi Sales",
     role: "sales",
     email: "sales@ab-medical.local",

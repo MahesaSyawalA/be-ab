@@ -28,6 +28,7 @@ export const userService = {
                 nama: user.nama,
                 email: user.email,
                 password,
+                role: user.role,
             }).catch((err) => {
                 console.error("[mailer] Gagal mengirim email kredensial:", err);
             });

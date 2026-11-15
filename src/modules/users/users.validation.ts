@@ -4,7 +4,7 @@ import { paginationQuerySchema } from "../../common/pagination/pagination.schema
 export const createUserSchema = z.object({
     id_squad: z.uuidv4().nullable().optional(),
     nama: z.string(),
-    role: z.enum(["sales", "sales_manager", "director"]),
+    role: z.enum(["sales", "sales_manager", "director", "admin"]),
     email: z.string().trim().toLowerCase().pipe(z.email()),
     no_telp: z.string(),
     password: z.string().min(8).max(72),
@@ -14,7 +14,7 @@ export const createUserSchema = z.object({
 export const updateUserSchema = z.object({
     id_squad: z.uuidv4().nullable().optional(),
     nama: z.string().optional(),
-    role: z.enum(["sales", "sales_manager", "director"]).optional(),
+    role: z.enum(["sales", "sales_manager", "director", "admin"]).optional(),
     email: z.string().trim().toLowerCase().pipe(z.email()).optional(),
     no_telp: z.string().optional(),
     is_active: z.boolean().optional(),
@@ -36,7 +36,7 @@ export const userQuerySchema = paginationQuerySchema.extend({
     id_squad: z.uuidv4({ message: "ID Squad tidak valid" }).optional(),
 
     role: z
-        .enum(["sales", "sales_manager", "director"], {
+        .enum(["sales", "sales_manager", "director", "admin"], {
             message: "Pilih role user yang valid",
         })
         .optional(),

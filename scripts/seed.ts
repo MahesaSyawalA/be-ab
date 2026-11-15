@@ -203,6 +203,7 @@ async function main() {
   const salesIds = [randomUUID(), randomUUID(), randomUUID(), randomUUID()];
 
   const users: Prisma.UserCreateManyInput[] = [
+    { id_user: randomUUID(), nama: "Super Admin", role: "admin", email: "admin@abmedical.test", no_telp: "081200000000", password_hash: passwordHash, is_active: true, must_change_password: false },
     { id_user: idDirector, nama: "Hendra Wijaya", role: "director", email: "director@abmedical.test", no_telp: "081200000001", password_hash: passwordHash, is_active: true, must_change_password: false },
     { id_user: idMgrBdg, id_squad: squadBandung, nama: "Rina Kusuma", role: "sales_manager", email: "manager.bandung@abmedical.test", no_telp: "081200000002", password_hash: passwordHash, is_active: true, must_change_password: false },
     { id_user: idMgrJkt, id_squad: squadJakarta, nama: "Dimas Pratama", role: "sales_manager", email: "manager.jakarta@abmedical.test", no_telp: "081200000003", password_hash: passwordHash, is_active: true, must_change_password: false },
