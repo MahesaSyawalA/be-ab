@@ -32,10 +32,19 @@ const secretSchema = z
   .regex(/^[0-9a-fA-F]+$/, "must consist of hex characters")
   .refine((value) => !value.includes("<") && !value.includes(">"), "still contains a placeholder");
 
+const trustProxySchema = z.union([
+  z.coerce.number().int().min(0),
+  z.enum(["loopback", "linklocal", "uniquelocal"]),
+  z.string().regex(
+    /^(\d{1,3}\.){3}\d{1,3}$/,
+    "must be a valid IPv4 address or supported proxy keyword",
+  ),
+]);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3000),
-  TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+  TRUST_PROXY: trustProxySchema,
   DATABASE_URL: z.string().min(1).default("mysql://root:@127.0.0.1:3306/salestracking_db"),
 
   CORS_ORIGINS: z.string().min(1).default("http://localhost:5173"),
@@ -65,7 +74,7 @@ export interface Env {
   nodeEnv: "development" | "test" | "production";
   isProduction: boolean;
   port: number;
-  trustProxy: number | false;
+  trustProxy: number | string | false;
   databaseUrl: string;
   corsOrigins: string[];
   jwtAccessSecret: string;
