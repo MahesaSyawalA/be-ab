@@ -111,6 +111,7 @@ export const userRepository = {
                 email: data.email,
                 no_telp: data.no_telp,
                 is_active: data.is_active,
+                ...(data.is_active === false ? { token_version: { increment: 1 } } : {}),
                 ...(data.password_hash === undefined
                     ? {}
                     : { password_hash: data.password_hash }),
@@ -136,6 +137,7 @@ export const userRepository = {
             data: {
                 password_hash: passwordHash,
                 must_change_password: mustChangePassword,
+                token_version: { increment: 1 },
             },
             omit: { password_hash: true },
             include: { squad: squadSelect },

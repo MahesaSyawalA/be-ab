@@ -52,7 +52,7 @@ export const authController = {
 
     // Data user diambil segar dari database, bukan dari klaim token.
     const user = await authService.getUserById(payload.sub);
-    if (user === null) {
+    if (user === null || !user.is_active || user.token_version !== payload.token_version) {
       clearAuthCookies(res);
       throw new HttpError(401, INVALID_SESSION_MESSAGE);
     }
@@ -85,7 +85,7 @@ export const authController = {
     }
 
     const user = await authService.getUserById(principal.sub);
-    if (user === null) {
+    if (user === null || !user.is_active || user.token_version !== principal.token_version) {
       clearAuthCookies(res);
       throw new HttpError(401, INVALID_SESSION_MESSAGE);
     }

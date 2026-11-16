@@ -35,7 +35,7 @@ const VERIFY_OPTIONS = {
   audience: JWT_AUDIENCE,
 };
 
-type AccessTokenSubject = Pick<User, "id_user" | "role" | "id_squad">;
+type AccessTokenSubject = Pick<User, "id_user" | "role" | "id_squad" | "token_version">;
 
 function nowInSeconds(): number {
   return Math.floor(Date.now() / 1000);
@@ -80,7 +80,12 @@ export const authService = {
   async signAccessToken(user: AccessTokenSubject): Promise<string> {
     const issuedAt = nowInSeconds();
 
-    return new SignJWT({ role: user.role, id_squad: user.id_squad, type: "access" })
+    return new SignJWT({
+      role: user.role,
+      id_squad: user.id_squad,
+      token_version: user.token_version ?? 0,
+      type: "access",
+    })
       .setProtectedHeader({ alg: JWT_ALG })
       .setSubject(user.id_user)
       .setIssuer(JWT_ISSUER)
@@ -95,11 +100,15 @@ export const authService = {
    * `exp` refresh token dibatasi `auth_time + SESSION_MAX_AGE`, sehingga rotasi
    * tidak bisa memperpanjang sesi tanpa batas.
    */
-  async signRefreshToken(user: Pick<User, "id_user">, authTime: number): Promise<string> {
+  async signRefreshToken(user: Pick<User, "id_user" | "token_version">, authTime: number): Promise<string> {
     const issuedAt = nowInSeconds();
     const expiresAt = Math.min(issuedAt + REFRESH_TOKEN_TTL_SEC, authTime + SESSION_MAX_AGE_SEC);
 
-    return new SignJWT({ type: "refresh", auth_time: authTime })
+    return new SignJWT({
+      type: "refresh",
+      auth_time: authTime,
+      token_version: user.token_version ?? 0,
+    })
       .setProtectedHeader({ alg: JWT_ALG })
       .setSubject(user.id_user)
       .setIssuer(JWT_ISSUER)
@@ -123,6 +132,7 @@ export const authService = {
 
       const sub = payload.sub;
       const role = payload.role;
+      const tokenVersion = typeof payload.token_version === "number" ? payload.token_version : 0;
 
       if (payload.type !== "access" || typeof sub !== "string" || !isUserRole(role)) {
         throw new Error("Klaim access token tidak lengkap.");
@@ -132,6 +142,7 @@ export const authService = {
         sub,
         role,
         id_squad: readStringClaim(payload, "id_squad"),
+        token_version: tokenVersion,
         type: "access",
       };
     } catch {
@@ -145,6 +156,7 @@ export const authService = {
 
       const sub = payload.sub;
       const authTime = payload.auth_time;
+      const tokenVersion = typeof payload.token_version === "number" ? payload.token_version : 0;
 
       if (payload.type !== "refresh" || typeof sub !== "string" || typeof authTime !== "number") {
         throw new Error("Klaim refresh token tidak lengkap.");
@@ -158,6 +170,7 @@ export const authService = {
         sub,
         jti: readStringClaim(payload, "jti") ?? "",
         auth_time: authTime,
+        token_version: tokenVersion,
         type: "refresh",
       };
     } catch {

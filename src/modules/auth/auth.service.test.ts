@@ -42,6 +42,7 @@ function makeUser(passwordHash: string): User {
     password_hash: passwordHash,
     is_active: true,
     must_change_password: false,
+    token_version: 0,
     created_at: new Date(),
     updated_at: new Date(),
   };
@@ -119,6 +120,7 @@ describe("authService access token", () => {
       sub: user.id_user,
       role: user.role,
       id_squad: user.id_squad,
+      token_version: user.token_version,
       type: "access",
     });
   });
@@ -232,6 +234,7 @@ describe("authService refresh token", () => {
     await expect(authService.verifyRefreshToken(token)).resolves.toMatchObject({
       sub: user.id_user,
       auth_time: authTime,
+      token_version: user.token_version,
       type: "refresh",
     });
   });

@@ -12,6 +12,7 @@ export interface User {
     password_hash: string;
     is_active: boolean;
     must_change_password: boolean;
+    token_version: number;
     created_at: Date | string;
     updated_at: Date | string;
 }

@@ -19,7 +19,14 @@ export const requireAuth: RequestHandler = async (req, _res, next) => {
       throw new HttpError(401, "Tidak terautentikasi.");
     }
 
-    req.user = await authService.verifyAccessToken(token);
+    const payload = await authService.verifyAccessToken(token);
+
+    const user = await authService.getUserById(payload.sub);
+    if (user === null || !user.is_active || user.token_version !== payload.token_version) {
+      throw new HttpError(401, "Sesi tidak valid atau sudah berakhir. Silakan login kembali.");
+    }
+
+    req.user = payload;
     next();
   } catch (error) {
     next(error);

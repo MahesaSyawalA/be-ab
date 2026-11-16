@@ -14,6 +14,7 @@ export interface AccessTokenPayload {
   sub: string;
   role: UserRole;
   id_squad: string | null;
+  token_version: number;
   type: "access";
 }
 
@@ -21,6 +22,7 @@ export interface AccessTokenPayload {
 export interface RefreshTokenPayload {
   sub: string;
   jti: string;
+  token_version: number;
   /** Epoch detik saat login awal. Diwariskan apa adanya oleh /refresh. */
   auth_time: number;
   type: "refresh";

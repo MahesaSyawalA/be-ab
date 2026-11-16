@@ -29,16 +29,17 @@ async function main() {
   }
 
   const targetEmail = process.argv[2] || env.mailFrom;
-  console.log(`\n2. Sending test email with new Tabular template to: ${targetEmail}`);
+  console.log(`\n2. Sending test email to: ${targetEmail}`);
   try {
-    await mailer.sendNewUserCredentials({
+    const info = await transporter.sendMail({
+      from: `"AB Medical" <${env.mailFrom}>`,
       to: targetEmail,
-      nama: "Budi Salesman",
-      email: targetEmail,
-      password: "PasswordKuat123!",
-      role: "sales",
+      subject: "Test Email from AB Medical",
+      text: "If you receieved this message, then Nodemailer and Brevo configuration completed successfully.",
     });
-    console.log("Email sent successfully with the new Tabular template!");
+    console.log("Email sent successfully.");
+    console.log("Message ID:", info.messageId);
+    console.log("Response:", info.response);
   } catch (err) {
     console.error("Send email failed:", err);
   }

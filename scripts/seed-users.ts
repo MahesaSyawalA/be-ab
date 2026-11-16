@@ -16,6 +16,7 @@ interface DummyAccount {
   no_telp: string;
   is_active?: boolean;
   must_change_password?: boolean;
+  token_version?: number;
 }
 
 const PASSWORD = "rahasia123";
@@ -87,6 +88,7 @@ async function main(): Promise<void> {
         password_hash,
         is_active: account.is_active ?? true,
         must_change_password: account.must_change_password ?? false,
+        token_version: account.token_version ?? 0,
       },
       create: {
         nama: account.nama,
@@ -96,6 +98,7 @@ async function main(): Promise<void> {
         password_hash,
         is_active: account.is_active ?? true,
         must_change_password: account.must_change_password ?? false,
+        token_version: account.token_version ?? 0,
       },
     });
 

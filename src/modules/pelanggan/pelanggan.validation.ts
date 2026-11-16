@@ -30,11 +30,17 @@ const pelangganBaseSchema = z.object({
   alamat: z
     .string()
     .min(5, { message: "Alamat terlalu pendek, minimal 5 karakter" }),
-  latitude: z.coerce.number({ message: "Latitude harus berupa angka" }),
-  longitude: z.coerce.number({ message: "Longitude harus berupa angka" }),
-  radius_kunjungan: z.coerce.number({
-    message: "Radius kunjungan harus berupa angka",
-  }),
+  latitude: z.coerce
+    .number({ message: "Latitude harus berupa angka" })
+    .min(-90, { message: "Latitude minimal -90" })
+    .max(90, { message: "Latitude maksimal 90" }),
+  longitude: z.coerce
+    .number({ message: "Longitude harus berupa angka" })
+    .min(-180, { message: "Longitude minimal -180" })
+    .max(180, { message: "Longitude maksimal 180" }),
+  radius_kunjungan: z.coerce
+    .number({ message: "Radius kunjungan harus berupa angka" })
+    .min(1, { message: "Radius kunjungan minimal 1 meter" }),
   kontak: z.preprocess(parseJsonString, kontakSchema.optional()),
 });
 
