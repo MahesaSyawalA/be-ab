@@ -4,7 +4,7 @@ import { parseCookies } from "../../common/utils/cookies.ts";
 import { HttpError } from "../../common/utils/http-error.ts";
 import { COOKIE_NAMES } from "../../config/auth.ts";
 import { authService } from "./auth.service.ts";
-import type { LoginInput, RefreshTokenPayload } from "./auth.types.ts";
+import type { ChangePasswordInput, LoginInput, RefreshTokenPayload } from "./auth.types.ts";
 
 const INVALID_SESSION_MESSAGE = "Sesi tidak valid atau sudah berakhir. Silakan login kembali.";
 
@@ -92,6 +92,22 @@ export const authController = {
 
     res.status(200).json({
       data: authService.toAuthUser(user),
+    });
+  },
+
+  async changePassword(req: Request, res: Response) {
+    const principal = req.user;
+    if (principal === undefined) {
+      clearAuthCookies(res);
+      throw new HttpError(401, "Tidak terautentikasi.");
+    }
+  
+    const { current_password, new_password } = req.body as ChangePasswordInput;
+  
+    await authService.changePassword(principal.sub, current_password, new_password);
+  
+    res.status(200).json({
+      message: "Password berhasil diubah.",
     });
   },
 };

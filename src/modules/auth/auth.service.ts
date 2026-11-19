@@ -177,4 +177,22 @@ export const authService = {
       throw new HttpError(401, INVALID_SESSION_MESSAGE);
     }
   },
+
+  async changePassword(idUser: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await authRepository.findById(idUser);
+    if (user === null) throw new HttpError(401, INVALID_SESSION_MESSAGE);
+    
+    const passwordMatches = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!passwordMatches) throw new HttpError(400, "Password saat ini tidak sesuai");
+    
+    const isSameAsOld = await bcrypt.compare(newPassword, user.password_hash);
+    if (isSameAsOld) throw new HttpError(400, "Password baru tidak boleh sama dengan password saat ini");
+    
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST);
+    
+    await authRepository.updatePassword(idUser, {
+      password_hash: passwordHash,
+      must_change_password: false,
+    });
+  },
 };

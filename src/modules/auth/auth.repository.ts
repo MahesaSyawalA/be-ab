@@ -13,4 +13,17 @@ export const authRepository = {
       where: { id_user: idUser },
     });
   },
+
+  async updatePassword(
+    idUser: string,
+    data: { password_hash: string; must_change_password: boolean },
+  ): Promise<User> {
+    return prisma.user.update({
+      where: { id_user: idUser },
+      data: {
+        password_hash: data.password_hash,
+        must_change_password: data.must_change_password,
+      },
+    });
+  },
 };

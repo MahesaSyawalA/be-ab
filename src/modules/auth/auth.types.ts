@@ -33,6 +33,11 @@ export interface LoginInput {
   password: string;
 }
 
+export interface ChangePasswordInput {
+  current_password: string;
+  new_password: string;
+}
+
 declare global {
   namespace Express {
     interface Request {
