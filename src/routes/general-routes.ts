@@ -30,6 +30,7 @@ router.get("/health/query", async (_req, res) => {
       },
     });
   } catch (error) {
+    console.error("[health/query] database check failed:", error);
     return res.status(503).json({
       success: false,
       message: "API is not ready",
