@@ -94,14 +94,16 @@ export const analyticsService = {
     });
 
     const totalRevenue = sumMoney(items.map((i) => i.revenue));
-    const biayaItems = items.flatMap((i) => (i.biaya === null ? [] : [i.biaya]));
-    const totalBiaya = biayaItems.length ? sumMoney(biayaItems) : null;
+    // ROI tim hanya membandingkan revenue sales yang biayanya sudah diisi, agar tidak menggelembung.
+    const withBiaya = items.filter((i) => i.biaya !== null);
+    const totalBiaya = withBiaya.length ? sumMoney(withBiaya.map((i) => i.biaya as number)) : null;
+    const revenueWithBiaya = sumMoney(withBiaya.map((i) => i.revenue));
     return {
       ringkasan: {
         total_revenue: totalRevenue,
         total_kunjungan: items.reduce((a, i) => a + i.jumlah_kunjungan, 0),
         total_biaya: totalBiaya,
-        roi_persen: roiPersen(totalRevenue, totalBiaya),
+        roi_persen: roiPersen(revenueWithBiaya, totalBiaya),
       },
       items: items.sort((a, b) => b.revenue - a.revenue),
     };
