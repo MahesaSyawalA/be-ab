@@ -3,16 +3,23 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import mariadb, { type PoolConfig } from "mariadb";
 
+// Serverless: tiap instance membuka pool sendiri, jadi batasnya harus kecil (set DB_POOL_LIMIT=2 di Vercel).
+const POOL_LIMIT = Number(process.env.DB_POOL_LIMIT ?? 10);
+
 function getPoolConfig(urlStr: string): PoolConfig {
   try {
     const parsed = new URL(urlStr);
+    // Aiven mewajibkan SSL; URL-nya membawa `?ssl-mode=REQUIRED`.
+    // shortcut: sertifikat tidak diverifikasi (hanya uji internal), pakai CA Aiven bila dipakai serius.
+    const useSsl = parsed.searchParams.has("ssl-mode") || parsed.searchParams.has("sslaccept");
     return {
       host: parsed.hostname === "localhost" ? "127.0.0.1" : (parsed.hostname || "127.0.0.1"),
       port: parsed.port ? Number(parsed.port) : 3306,
       user: parsed.username || "root",
       password: parsed.password || "",
       database: parsed.pathname ? parsed.pathname.replace(/^\//, "") : "salestracking_db",
-      connectionLimit: 10,
+      connectionLimit: POOL_LIMIT,
+      ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     };
   } catch {
     return {
@@ -21,7 +28,7 @@ function getPoolConfig(urlStr: string): PoolConfig {
       user: "root",
       password: "",
       database: "salestracking_db",
-      connectionLimit: 10,
+      connectionLimit: POOL_LIMIT,
     };
   }
 }

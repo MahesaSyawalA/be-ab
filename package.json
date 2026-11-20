@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
+    "vercel-build": "prisma generate",
     "seed": "tsx scripts/seed-users.ts",
     "seed:all": "tsx scripts/seed.ts",
     "rehash-passwords": "tsx scripts/rehash-passwords.ts"

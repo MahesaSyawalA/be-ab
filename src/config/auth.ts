@@ -20,7 +20,8 @@ export const COOKIE_NAMES = {
 } as const;
 
 /** Refresh token hanya dikirim browser ke endpoint auth. */
-export const REFRESH_COOKIE_PATH = "/api/auth";
+// Uji internal di Vercel: FE memproxy BE lewat /backend, jadi path cookie harus ikut (REFRESH_COOKIE_PATH=/backend/auth).
+export const REFRESH_COOKIE_PATH = process.env.REFRESH_COOKIE_PATH ?? "/api/auth";
 
 // Cookie dibuat host-only (tanpa atribut `Domain`) — paling aman dan tetap
 // bekerja di localhost.
