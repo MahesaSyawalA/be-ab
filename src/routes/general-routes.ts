@@ -1,3 +1,4 @@
+import { inspect } from "node:util";
 import { Router } from "express";
 import { prisma } from "../config/prisma.ts";
 
@@ -30,7 +31,7 @@ router.get("/health/query", async (_req, res) => {
       },
     });
   } catch (error) {
-    console.error("[health/query] database check failed:", error);
+    console.error("[health/query] database check failed:", inspect(error, { depth: 10 }));
     return res.status(503).json({
       success: false,
       message: "API is not ready",
