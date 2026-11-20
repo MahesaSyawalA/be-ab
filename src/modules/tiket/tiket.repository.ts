@@ -29,6 +29,7 @@ async function jenisTahapOf(idTahap: string): Promise<JenisTahap | undefined> {
 }
 
 const ticketInclude = {
+  _count: { select: { penawaran: true } },
   pelanggan: true,
   kontak: true,
   user: true,
@@ -133,6 +134,7 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
     tanggal_penawaran_awal: raw.tanggal_penawaran_awal,
     tanggal_closing: raw.tanggal_closing,
     alasan_lost: raw.alasan_lost,
+    jumlah_penawaran: raw._count?.penawaran ?? 0,
     durasi_siklus_hari: cycleDays(
       (raw.riwayat_tahap ?? []).map((rw: any) => ({
         jenis_tahap: rw.tahap_tujuan?.jenis_tahap,

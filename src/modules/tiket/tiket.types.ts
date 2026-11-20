@@ -60,6 +60,8 @@ export interface TiketWithDetails extends Tiket {
   riwayat_list?: RiwayatTahapWithDetails[];
   /** Hari dari masuk tahap quotation sampai revenue; null bila belum closing. */
   durasi_siklus_hari: number | null;
+  /** Jumlah penawaran/revisi yang sudah dibuat; form quotation berikutnya = jumlah + 1. */
+  jumlah_penawaran: number;
 }
 
 export interface TeamContributionItem {

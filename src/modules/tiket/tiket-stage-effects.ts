@@ -1,7 +1,25 @@
 import { prisma } from "../../config/prisma.ts";
+import { formatDocNumber, type DocPrefix } from "../../common/utils/doc-number.ts";
 import type { JenisTahap } from "../tahap-kanban/tahap-kanban.types.ts";
 
-const kode = (idTiket: string) => idTiket.slice(0, 8).toUpperCase();
+/** Nomor berikutnya di bulan berjalan; lompat bila sudah terpakai (kolom no_* unik). */
+async function nextDocNumber(prefix: DocPrefix, now: Date): Promise<string> {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  let seq =
+    1 +
+    (prefix === "QUO"
+      ? await prisma.penawaran.count({ where: { tanggal_penawaran: { gte: monthStart } } })
+      : await prisma.purchaseOrder.count({ where: { tanggal_po: { gte: monthStart } } }));
+  for (;;) {
+    const no = formatDocNumber(prefix, now, seq);
+    const taken =
+      prefix === "QUO"
+        ? await prisma.penawaran.findUnique({ where: { no_penawaran: no } })
+        : await prisma.purchaseOrder.findUnique({ where: { no_po: no } });
+    if (!taken) return no;
+    seq += 1;
+  }
+}
 
 /**
  * Efek samping saat tiket MASUK ke kolom, dibaca dari `jenis_tahap` (bukan nama/id kolom),
@@ -9,8 +27,8 @@ const kode = (idTiket: string) => idTiket.slice(0, 8).toUpperCase();
  * - quotation: catat tanggal penawaran awal (sekali) + buat `Penawaran` revisi baru.
  * - po: buat `PurchaseOrder`, tandai penawaran terakhir disetujui.
  * - revenue: isi realisasi revenue di PO terakhir + tanggal closing (sekali).
- * shortcut: nomor dokumen otomatis & url file kosong sampai evidence diunggah, tanpa transaksi DB;
- * upgrade bila nomor resmi perlu diinput sales atau penulisan harus atomik.
+ * shortcut: url file kosong sampai evidence diunggah, nomor dokumen urut per bulan tanpa transaksi DB
+ * (dua simpan bersamaan bisa bentrok di kolom unik); upgrade bila penulisan harus atomik.
  */
 export async function applyStageEffects(
   idTiket: string,
@@ -29,7 +47,7 @@ export async function applyStageEffects(
     await prisma.penawaran.create({
       data: {
         id_tiket: idTiket,
-        no_penawaran: `PNW-${kode(idTiket)}-R${revisi}`,
+        no_penawaran: await nextDocNumber("QUO", now),
         revisi_ke: revisi,
         tanggal_penawaran: now,
         total_nilai: nilai,
@@ -46,12 +64,11 @@ export async function applyStageEffects(
   });
 
   if (jenis === "po") {
-    const urut = await prisma.purchaseOrder.count({ where: { id_tiket: idTiket } });
     await prisma.purchaseOrder.create({
       data: {
         id_tiket: idTiket,
         id_penawaran: penawaran?.id_penawaran ?? null,
-        no_po: `PO-${kode(idTiket)}-${urut + 1}`,
+        no_po: await nextDocNumber("PO", now),
         tanggal_po: now,
         nilai_po: nilai,
         status: "diterima",
@@ -89,7 +106,7 @@ export async function applyStageEffects(
         data: {
           id_tiket: idTiket,
           id_penawaran: penawaran?.id_penawaran ?? null,
-          no_po: `PO-${kode(idTiket)}-1`,
+          no_po: await nextDocNumber("PO", now),
           tanggal_po: now,
           nilai_po: nilai,
           status,
