@@ -2,6 +2,9 @@ import { prisma } from "../../config/prisma.ts";
 import type { Prisma } from "@prisma/client";
 import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
+import { cycleDays } from "../../common/utils/sales-cycle.ts";
+import { applyStageEffects } from "./tiket-stage-effects.ts";
+import type { JenisTahap } from "../tahap-kanban/tahap-kanban.types.ts";
 import type {
   Tiket,
   TiketFilters,
@@ -15,6 +18,14 @@ function toDate(val?: string | Date | null): Date | null | undefined {
   if (val === undefined) return undefined;
   if (val === null) return null;
   return new Date(val);
+}
+
+// Nilai tahap quotation/po/revenue disimpan di Penawaran/PurchaseOrder, bukan menimpa estimasi_nilai tiket.
+const DOCUMENT_STAGES: JenisTahap[] = ["quotation", "po", "revenue"];
+
+async function jenisTahapOf(idTahap: string): Promise<JenisTahap | undefined> {
+  const tahap = await prisma.tahapKanban.findUnique({ where: { id_tahap: idTahap }, select: { jenis_tahap: true } });
+  return tahap?.jenis_tahap;
 }
 
 const ticketInclude = {
@@ -122,6 +133,14 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
     tanggal_penawaran_awal: raw.tanggal_penawaran_awal,
     tanggal_closing: raw.tanggal_closing,
     alasan_lost: raw.alasan_lost,
+    durasi_siklus_hari: cycleDays(
+      (raw.riwayat_tahap ?? []).map((rw: any) => ({
+        jenis_tahap: rw.tahap_tujuan?.jenis_tahap,
+        waktu_pindah: rw.waktu_pindah,
+      })),
+      raw.tanggal_penawaran_awal,
+      raw.tanggal_closing,
+    ),
     created_at: raw.created_at,
     updated_at: raw.updated_at,
     kode_tiket,
@@ -210,6 +229,11 @@ export const tiketRepository = {
       })
       .catch(() => null);
 
+    const jenis = await jenisTahapOf(created.id_tahap);
+    if (jenis) {
+      await applyStageEffects(created.id_tiket, jenis, created.estimasi_nilai, created.status);
+      return (await this.getById(created.id_tiket)) ?? mapToTiketWithDetails(created);
+    }
     return mapToTiketWithDetails(created);
   },
 
@@ -297,14 +321,18 @@ export const tiketRepository = {
     const existing = await prisma.tiket.findUnique({ where: { id_tiket: id } });
     if (!existing) return null;
 
+    const newTahapId = data.id_tahap && data.id_tahap !== existing.id_tahap ? data.id_tahap : undefined;
+    const jenis = newTahapId ? await jenisTahapOf(newTahapId) : undefined;
+    const isDocumentStage = !!jenis && DOCUMENT_STAGES.includes(jenis);
+
     // Catat perpindahan tahap otomatis jika tahap berubah
-    if (data.id_tahap && data.id_tahap !== existing.id_tahap) {
+    if (newTahapId) {
       await prisma.riwayatTahap
         .create({
           data: {
             id_tiket: id,
             id_tahap_asal: existing.id_tahap,
-            id_tahap_tujuan: data.id_tahap,
+            id_tahap_tujuan: newTahapId,
             id_user: data.id_user ?? existing.id_user,
           },
         })
@@ -321,7 +349,7 @@ export const tiketRepository = {
         ...(data.id_tahap !== undefined && { id_tahap: data.id_tahap }),
         ...(data.id_kontak !== undefined && { id_kontak: data.id_kontak }),
         ...(data.judul !== undefined && { judul: data.judul }),
-        ...(data.estimasi_nilai !== undefined && {
+        ...(data.estimasi_nilai !== undefined && !isDocumentStage && {
           estimasi_nilai: data.estimasi_nilai,
         }),
         ...(data.estimasi_closing !== undefined && {
@@ -333,7 +361,8 @@ export const tiketRepository = {
         }),
         ...(data.prioritas !== undefined && { prioritas: data.prioritas }),
         ...(data.posisi !== undefined && { posisi: data.posisi }),
-        ...(data.tanggal_penawaran_awal !== undefined && {
+        // Tanggal penawaran awal tidak boleh bergeser saat pindah antar kolom quotation.
+        ...(data.tanggal_penawaran_awal !== undefined && !existing.tanggal_penawaran_awal && {
           tanggal_penawaran_awal: toDate(data.tanggal_penawaran_awal),
         }),
         ...(data.tanggal_closing !== undefined && {
@@ -345,6 +374,16 @@ export const tiketRepository = {
       },
       include: ticketInclude,
     });
+
+    if (jenis) {
+      await applyStageEffects(
+        id,
+        jenis,
+        data.estimasi_nilai ?? existing.estimasi_nilai,
+        data.status ?? existing.status,
+      );
+      return this.getById(id);
+    }
 
     return mapToTiketWithDetails(updated);
   },

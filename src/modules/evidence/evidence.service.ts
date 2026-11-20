@@ -2,6 +2,7 @@ import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
 import { HttpError } from "../../common/utils/http-error.ts";
 import { buildMeta } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
+import { linkEvidenceToDocument } from "../tiket/tiket-stage-effects.ts";
 import { evidenceRepository } from "./evidence.repository.ts";
 import type {
     CreateEvidenceInput,
@@ -93,7 +94,9 @@ export const evidenceService = {
             : { waktu_upload: new Date() };
 
         try {
-            return await guardAktivitasExists(() => evidenceRepository.create({ ...data, ...fileData }));
+            const created = await guardAktivitasExists(() => evidenceRepository.create({ ...data, ...fileData }));
+            if (fileData.url_file) await linkEvidenceToDocument(data.id_aktivitas, fileData.url_file);
+            return created;
         } catch (error) {
             await removeFileQuietly(fileData.url_file);
             throw error;
