@@ -100,7 +100,7 @@ const pelangganDefs = [
     ],
   },
   {
-    nama_outlet: "Laboratorium Medika Prima", tipe_outlet: "Laboratorium", status: "Prospek",
+    nama_outlet: "Laboratorium Medika Prima", tipe_outlet: "Klinik", status: "Prospek",
     alamat: "Jl. Asia Afrika No. 45, Bandung, Jawa Barat",
     latitude: -6.9211, longitude: 107.6098,
     kontak: [
@@ -145,7 +145,7 @@ const pelangganDefs = [
     ],
   },
   {
-    nama_outlet: "Laboratorium Klinik Nusantara", tipe_outlet: "Laboratorium", status: "Aktif",
+    nama_outlet: "Laboratorium Klinik Nusantara", tipe_outlet: "Klinik", status: "Aktif",
     alamat: "Jl. Gatot Subroto No. 64, Jakarta Pusat",
     latitude: -6.2297, longitude: 106.8226,
     kontak: [
