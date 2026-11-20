@@ -99,6 +99,7 @@ model User {
   is_active          Boolean  @default(true)
   must_change_password Boolean @default(false)
   token_version      Int      @default(0)
+  biaya_bulanan      Decimal? @db.Decimal(18, 2)
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
 
@@ -171,7 +172,7 @@ model Tiket {
   id_tahap               String         @db.VarChar(36)
   id_kontak              String?        @db.VarChar(36)
   judul                  String         @db.VarChar(200)
-  estimasi_nilai         Float
+  estimasi_nilai         Decimal @db.Decimal(18, 2)
   estimasi_closing       DateTime
   status                 TiketStatus
   kebutuhan_pelanggan    String         @db.Text
@@ -274,7 +275,7 @@ model Penawaran {
   no_penawaran       String          @unique @db.VarChar(100)
   revisi_ke          Int             @default(0)
   tanggal_penawaran  DateTime
-  total_nilai        Float
+  total_nilai        Decimal @db.Decimal(18, 2)
   status             StatusPenawaran
   url_file_penawaran String          @db.Text
   created_at         DateTime        @default(now())
@@ -293,10 +294,10 @@ model PurchaseOrder {
   id_tiket        String              @db.VarChar(36)
   no_po           String              @unique @db.VarChar(100)
   tanggal_po      DateTime
-  nilai_po        Float
+  nilai_po        Decimal @db.Decimal(18, 2)
   status          StatusPurchaseOrder
   url_file_po     String              @db.Text
-  nilai_revenue   Float
+  nilai_revenue   Decimal @db.Decimal(18, 2)
   tanggal_revenue DateTime?
   created_at      DateTime            @default(now())
   updated_at      DateTime            @updatedAt
