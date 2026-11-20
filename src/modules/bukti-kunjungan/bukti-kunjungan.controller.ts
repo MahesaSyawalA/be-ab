@@ -34,7 +34,7 @@ export const buktiKunjunganController = {
       longitude: Number(req.body.longitude),
       latitude: Number(req.body.latitude),
       jarak_klien: Number(req.body.jarak_klien),
-      dalam_radius: req.body.dalam_radius === "true",
+      dalam_radius: req.body.dalam_radius,
       img_url,
       file_url,
     };
@@ -96,7 +96,7 @@ export const buktiKunjunganController = {
     if (b.longitude !== undefined) data.longitude = Number(b.longitude);
     if (b.latitude !== undefined) data.latitude = Number(b.latitude);
     if (b.jarak_klien !== undefined) data.jarak_klien = Number(b.jarak_klien);
-    if (b.dalam_radius !== undefined) data.dalam_radius = b.dalam_radius === "true";
+    if (b.dalam_radius !== undefined) data.dalam_radius = b.dalam_radius;
 
     if (image) data.img_url = await uploadToR2(image, "bukti-kunjungan/images");
     if (doc) data.file_url = await uploadToR2(doc, "bukti-kunjungan/files");
