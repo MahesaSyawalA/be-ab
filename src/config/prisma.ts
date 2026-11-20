@@ -5,6 +5,8 @@ import mariadb, { type PoolConfig } from "mariadb";
 
 // Serverless: tiap instance membuka pool sendiri, jadi batasnya harus kecil (set DB_POOL_LIMIT=2 di Vercel).
 const POOL_LIMIT = Number(process.env.DB_POOL_LIMIT ?? 10);
+// Bawaan konektor sangat pendek; DB di region jauh (mis. Vercel AS -> Aiven Asia) butuh lebih lama untuk TCP+SSL.
+const CONNECT_TIMEOUT_MS = 20_000;
 
 function getPoolConfig(urlStr: string): PoolConfig {
   try {
@@ -19,6 +21,8 @@ function getPoolConfig(urlStr: string): PoolConfig {
       password: parsed.password || "",
       database: parsed.pathname ? parsed.pathname.replace(/^\//, "") : "salestracking_db",
       connectionLimit: POOL_LIMIT,
+      connectTimeout: CONNECT_TIMEOUT_MS,
+      acquireTimeout: CONNECT_TIMEOUT_MS,
       ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
     };
   } catch {
