@@ -18,6 +18,7 @@ export const updateUserSchema = z.object({
     email: z.string().trim().toLowerCase().pipe(z.email()).optional(),
     no_telp: z.string().optional(),
     is_active: z.boolean().optional(),
+    biaya_bulanan: z.number().min(0).nullable().optional(),
     password: z.string().min(8).max(72).optional(),
 });
 

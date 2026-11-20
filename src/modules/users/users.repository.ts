@@ -111,6 +111,7 @@ export const userRepository = {
                 email: data.email,
                 no_telp: data.no_telp,
                 is_active: data.is_active,
+                biaya_bulanan: data.biaya_bulanan,
                 ...(data.is_active === false ? { token_version: { increment: 1 } } : {}),
                 ...(data.password_hash === undefined
                     ? {}

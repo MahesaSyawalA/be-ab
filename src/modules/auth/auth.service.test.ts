@@ -43,6 +43,7 @@ function makeUser(passwordHash: string): User {
     is_active: true,
     must_change_password: false,
     token_version: 0,
+    biaya_bulanan: null,
     created_at: new Date(),
     updated_at: new Date(),
   };
