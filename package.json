@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "test": "vitest run",
-    "vercel-build": "prisma generate",
+    "vercel-build": "prisma generate && esbuild src/app.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/app.mjs",
     "seed": "tsx scripts/seed-users.ts",
     "seed:all": "tsx scripts/seed.ts",
     "rehash-passwords": "tsx scripts/rehash-passwords.ts"
