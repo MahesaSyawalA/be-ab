@@ -31,6 +31,8 @@ router.get("/health/query", async (_req, res) => {
       },
     });
   } catch (error) {
+    const { hostname, port } = new URL(process.env.DATABASE_URL ?? "mysql://unset");
+    console.error(`[health/query] target ${hostname}:${port}`);
     console.error("[health/query] database check failed:", inspect(error, { depth: 10 }));
     return res.status(503).json({
       success: false,
