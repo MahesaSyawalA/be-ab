@@ -18,6 +18,7 @@ import penawaranRoutes from "./modules/penawaran/penawaran.routes.ts";
 import purchaseOrderRoutes from "./modules/purchase-order/purchase-order.routes.ts";
 import notifikasiRoutes from "./modules/notifikasi/notifikasi.routes.ts";
 import evidenceRoutes from "./modules/evidence/evidence.routes.ts";
+import analyticsRoutes from "./modules/analytics/analytics.routes.ts";
 import generalRoutes from "./routes/general-routes.ts";
 import messagesRouter from "./routes/pusher.ts";
 
@@ -53,6 +54,7 @@ app.use("/api/penawaran", requireAuth, penawaranRoutes);
 app.use("/api/purchase-order", requireAuth, purchaseOrderRoutes);
 app.use("/api/notifikasi", requireAuth, notifikasiRoutes);
 app.use("/api/evidence", requireAuth, evidenceRoutes);
+app.use("/api/analytics", requireAuth, analyticsRoutes);
 app.use(errorHandler);
 
 export default app;
