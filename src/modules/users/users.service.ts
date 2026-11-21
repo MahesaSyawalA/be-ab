@@ -87,7 +87,7 @@ export const userService = {
         return userRepository.resetPassword(
             id,
             password_hash,
-            data.must_change_password ?? false,
+            data.must_change_password !== undefined ? Boolean(data.must_change_password) : true,
         );
     },
 

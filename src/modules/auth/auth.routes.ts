@@ -12,6 +12,7 @@ const loginLimiter = rateLimit({
   limit: env.loginRateMax,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
   message: { message: "Terlalu banyak percobaan. Coba lagi nanti." },
 });
 

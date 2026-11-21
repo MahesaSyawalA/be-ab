@@ -104,10 +104,11 @@ export const authController = {
   
     const { current_password, new_password } = req.body as ChangePasswordInput;
   
-    await authService.changePassword(principal.sub, current_password, new_password);
+    const updatedUser = await authService.changePassword(principal.sub, current_password, new_password);
   
     res.status(200).json({
       message: "Password berhasil diubah.",
+      data: authService.toAuthUser(updatedUser),
     });
   },
 };
