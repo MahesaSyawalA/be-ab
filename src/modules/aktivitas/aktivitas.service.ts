@@ -1,5 +1,6 @@
 ﻿import { buildMeta } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
+import { ensurePenawaranForAktivitas } from "../tiket/tiket-stage-effects.ts";
 import { aktivitasRepository } from "./aktivitas.repository.ts";
 import type {
   Aktivitas,
@@ -10,7 +11,16 @@ import type {
 
 export const aktivitasService = {
   async create(data: CreateAktivitasInput): Promise<Aktivitas> {
-    return aktivitasRepository.create(data);
+    const created = await aktivitasRepository.create(data);
+    if (created.jenis_kegiatan === "quotation") {
+      await ensurePenawaranForAktivitas(
+        created.id_aktivitas,
+        created.id_tiket,
+        data.total_nilai,
+        data.tanggal,
+      );
+    }
+    return created;
   },
 
   async getAll(filters: AktivitasFilters, pagination: PaginationParams) {

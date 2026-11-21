@@ -37,11 +37,27 @@ export interface Aktivitas {
   updated_at: Date | string;
 }
 
+export interface AktivitasPenawaranInfo {
+  id_penawaran: string;
+  no_penawaran: string;
+  revisi_ke: number;
+  total_nilai: number;
+  status: string;
+}
+
+export interface AktivitasPurchaseOrderInfo {
+  no_po: string;
+  tanggal_po: Date | string;
+  nilai_po: number;
+}
+
 export interface AktivitasWithDetails extends Aktivitas {
   nama_petugas: string;
   pic_ditemui: string;
   waktu_label: string;
   evidence?: EvidenceItem | null;
+  penawaran?: AktivitasPenawaranInfo[] | null;
+  purchase_order?: AktivitasPurchaseOrderInfo | null;
 }
 
 export interface CreateAktivitasInput {
@@ -51,6 +67,7 @@ export interface CreateAktivitasInput {
   catatan: string;
   jenis_kegiatan: JenisKegiatan;
   jadwal_follow_up?: string | Date | null;
+  total_nilai?: number;
 }
 
 export interface UpdateAktivitasInput {

@@ -13,6 +13,7 @@ export const createAktivitasSchema = z.object({
   catatan: z.string().min(5, { message: "Catatan terlalu pendek, minimal isi 5 karakter" }),
   jenis_kegiatan: jenisKegiatan,
   jadwal_follow_up: z.string().nullable().optional(),
+  total_nilai: z.coerce.number().nonnegative().optional(),
 });
 
 export const updateAktivitasSchema = createAktivitasSchema.partial();

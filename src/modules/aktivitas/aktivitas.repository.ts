@@ -15,10 +15,22 @@ function toDate(val?: string | Date | null): Date | null | undefined {
   return new Date(val);
 }
 
+const penawaranSelect = {
+  id_penawaran: true,
+  no_penawaran: true,
+  revisi_ke: true,
+  total_nilai: true,
+  status: true,
+} satisfies Prisma.PenawaranSelect;
+
 const listInclude = {
   user: { select: { nama: true, role: true } },
   bukti_kunjungan: true,
   evidence: true,
+  penawaran: {
+    select: penawaranSelect,
+    orderBy: { created_at: "desc" as const },
+  },
 } satisfies Prisma.AktivitasInclude;
 
 export const aktivitasRepository = {
@@ -59,16 +71,7 @@ export const aktivitasRepository = {
   async getById(id: string) {
     return prisma.aktivitas.findUnique({
       where: { id_aktivitas: id },
-      include: {
-        user: {
-          select: {
-            nama: true,
-            role: true,
-          },
-        },
-        bukti_kunjungan: true,
-        evidence: true,
-      },
+      include: listInclude,
     });
   },
 
@@ -82,15 +85,7 @@ export const aktivitasRepository = {
   async getByTiketId(idTiket: string) {
     return prisma.aktivitas.findMany({
       where: { id_tiket: idTiket },
-      include: {
-        user: {
-          select: {
-            nama: true,
-          },
-        },
-        bukti_kunjungan: true,
-        evidence: true,
-      },
+      include: listInclude,
       orderBy: { tanggal: "desc" },
     });
   },
