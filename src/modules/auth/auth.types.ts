@@ -6,7 +6,10 @@ export interface AuthUser {
   nama: string;
   role: UserRole;
   email: string;
+  no_telp: string;
   id_squad: string | null;
+  is_active: boolean;
+  must_change_password: boolean;
 }
 
 /** Klaim yang disimpan di dalam access token. */

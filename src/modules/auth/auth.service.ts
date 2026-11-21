@@ -66,7 +66,10 @@ export const authService = {
       nama: user.nama,
       role: user.role,
       email: user.email,
+      no_telp: user.no_telp,
       id_squad: user.id_squad,
+      is_active: user.is_active,
+      must_change_password: user.must_change_password,
     };
   },
 

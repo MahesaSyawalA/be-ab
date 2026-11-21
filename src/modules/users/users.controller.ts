@@ -47,6 +47,31 @@ export const usersController = {
         res.status(200).json({ data: user });
     },
 
+    async updateMe(req: Request, res: Response) {
+        const userId = req.user?.sub;
+        if (!userId) {
+            res.status(401).json({
+                message: "Tidak terautentikasi.",
+            });
+            return;
+        }
+
+        const { nama, no_telp } = req.body as { nama?: string; no_telp?: string };
+        const user = await userService.update(userId, { nama, no_telp });
+
+        if (!user) {
+            res.status(404).json({
+                message: "User not found.",
+            });
+            return;
+        }
+
+        res.status(200).json({
+            message: "Profil berhasil diperbarui.",
+            data: user,
+        });
+    },
+
     async update(req: Request, res: Response) {
         const id = req.params.id as string;
         const user = await userService.update(id, req.body);

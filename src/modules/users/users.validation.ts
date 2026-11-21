@@ -22,6 +22,25 @@ export const updateUserSchema = z.object({
     password: z.string().min(8).max(72).optional(),
 });
 
+export const updateProfileSchema = z
+    .object({
+        nama: z
+            .string()
+            .trim()
+            .min(1, { message: "Nama tidak boleh kosong" })
+            .max(100, { message: "Nama maksimal 100 karakter" })
+            .optional(),
+        no_telp: z
+            .string()
+            .trim()
+            .min(1, { message: "Nomor telepon tidak boleh kosong" })
+            .max(30, { message: "Nomor telepon maksimal 30 karakter" })
+            .optional(),
+    })
+    .refine((data) => data.nama !== undefined || data.no_telp !== undefined, {
+        message: "Minimal satu field (nama atau no_telp) harus diisi",
+    });
+
 export const resetPasswordSchema = z.object({
     new_password: z.string().min(8).max(72),
     must_change_password: z.boolean().optional(),

@@ -100,9 +100,13 @@ describe("authService.verifyCredentials", () => {
     expect(authUser).not.toHaveProperty("password_hash");
     expect(authUser).toMatchObject({
       id_user: user.id_user,
+      nama: user.nama,
       email: user.email,
+      no_telp: user.no_telp,
       role: user.role,
       id_squad: user.id_squad,
+      is_active: user.is_active,
+      must_change_password: user.must_change_password,
     });
   });
 });
