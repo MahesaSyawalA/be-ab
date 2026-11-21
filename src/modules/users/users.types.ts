@@ -36,6 +36,7 @@ export interface CreateUserInput {
     /** Password polos dari client; di-hash di service sebelum disimpan. */
     password: string;
     send_credentials?: boolean;
+    must_change_password?: boolean;
 }
 
 export interface UpdateUserInput {

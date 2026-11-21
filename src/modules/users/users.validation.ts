@@ -9,6 +9,7 @@ export const createUserSchema = z.object({
     no_telp: z.string(),
     password: z.string().min(8).max(72),
     send_credentials: z.boolean().optional(),
+    must_change_password: z.boolean().optional(),
 });
 
 export const updateUserSchema = z.object({

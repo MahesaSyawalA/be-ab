@@ -181,7 +181,7 @@ export const authService = {
     }
   },
 
-  async changePassword(idUser: string, currentPassword: string, newPassword: string): Promise<void> {
+  async changePassword(idUser: string, currentPassword: string, newPassword: string): Promise<User> {
     const user = await authRepository.findById(idUser);
     if (user === null) throw new HttpError(401, INVALID_SESSION_MESSAGE);
     
@@ -193,7 +193,7 @@ export const authService = {
     
     const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST);
     
-    await authRepository.updatePassword(idUser, {
+    return authRepository.updatePassword(idUser, {
       password_hash: passwordHash,
       must_change_password: false,
     });
