@@ -28,6 +28,34 @@ async function jenisTahapOf(idTahap: string): Promise<JenisTahap | undefined> {
   return tahap?.jenis_tahap;
 }
 
+function matchPurchaseOrder(act: any, purchaseOrders: any[], usedPoIds: Set<string>) {
+  const available = purchaseOrders.filter((po) => !usedPoIds.has(po.id_po));
+  if (!available.length) return null;
+  const urls = new Set(
+    (act.evidence ?? [])
+      .map((e: any) => e.url_file)
+      .filter((u: unknown): u is string => typeof u === "string" && u.length > 0),
+  );
+  const byFile =
+    urls.size > 0
+      ? available.find((po) => po.url_file_po && urls.has(po.url_file_po))
+      : undefined;
+  const actTime = new Date(act.created_at ?? act.tanggal).getTime();
+  const matched =
+    byFile ??
+    available.reduce((best, po) => {
+      const bestDiff = Math.abs(new Date(best.created_at ?? best.tanggal_po).getTime() - actTime);
+      const curDiff = Math.abs(new Date(po.created_at ?? po.tanggal_po).getTime() - actTime);
+      return curDiff < bestDiff ? po : best;
+    }, available[0]);
+  usedPoIds.add(matched.id_po);
+  return {
+    no_po: matched.no_po,
+    tanggal_po: matched.tanggal_po,
+    nilai_po: matched.nilai_po,
+  };
+}
+
 const ticketInclude = {
   _count: { select: { penawaran: true } },
   pelanggan: true,
@@ -36,13 +64,25 @@ const ticketInclude = {
   tahap: true,
   penawaran: {
     orderBy: { created_at: "desc" as const },
-    take: 1,
+  },
+  purchase_order: {
+    orderBy: { created_at: "desc" as const },
   },
   aktivitas: {
     include: {
       user: true,
       bukti_kunjungan: true,
       evidence: true,
+      penawaran: {
+        select: {
+          id_penawaran: true,
+          no_penawaran: true,
+          revisi_ke: true,
+          total_nilai: true,
+          status: true,
+        },
+        orderBy: { created_at: "desc" as const },
+      },
     },
     orderBy: { created_at: "desc" as const },
   },
@@ -112,6 +152,7 @@ function formatDates(date: Date | string | null | undefined) {
 export function mapToTiketWithDetails(raw: any): TiketWithDetails {
   const dates = formatDates(raw.estimasi_closing);
   const latestPenawaran = raw.penawaran?.[0];
+  const usedPoIds = new Set<string>();
   const kode_tiket = raw.id_tiket?.startsWith("tkt-")
     ? raw.id_tiket.toUpperCase()
     : `TKT-${String(raw.id_tiket || "")
@@ -181,6 +222,11 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
             deskripsi: `Bukti Kunjungan (${act.bukti_kunjungan[0].dalam_radius ? "Dalam Radius" : "Luar Radius"})`,
           }
         : null,
+      penawaran: act.penawaran ?? [],
+      purchase_order:
+        act.jenis_kegiatan === "po"
+          ? matchPurchaseOrder(act, raw.purchase_order ?? [], usedPoIds)
+          : null,
     })),
     riwayat_list: raw.riwayat_tahap?.map((rw: any) => ({
       id_riwayat: rw.id_riwayat,
@@ -194,6 +240,7 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
       nama_user: rw.user?.nama ?? "User",
       waktu_label: new Date(rw.waktu_pindah).toLocaleDateString("id-ID"),
     })),
+    penawaran_list: raw.penawaran ?? [],
   };
 }
 
@@ -233,7 +280,13 @@ export const tiketRepository = {
 
     const jenis = await jenisTahapOf(created.id_tahap);
     if (jenis) {
-      await applyStageEffects(created.id_tiket, jenis, created.estimasi_nilai, created.status);
+      await applyStageEffects(
+        created.id_tiket,
+        jenis,
+        created.estimasi_nilai,
+        created.status,
+        data.tanggal_dokumen ?? data.tanggal_penawaran_awal,
+      );
       return (await this.getById(created.id_tiket)) ?? mapToTiketWithDetails(created);
     }
     return mapToTiketWithDetails(created);
@@ -324,7 +377,9 @@ export const tiketRepository = {
     if (!existing) return null;
 
     const newTahapId = data.id_tahap && data.id_tahap !== existing.id_tahap ? data.id_tahap : undefined;
-    const jenis = newTahapId ? await jenisTahapOf(newTahapId) : undefined;
+    const stageIdForEffect =
+      newTahapId ?? (data.create_stage_document ? (data.id_tahap ?? existing.id_tahap) : undefined);
+    const jenis = stageIdForEffect ? await jenisTahapOf(stageIdForEffect) : undefined;
     const isDocumentStage = !!jenis && DOCUMENT_STAGES.includes(jenis);
 
     // Catat perpindahan tahap otomatis jika tahap berubah
@@ -381,8 +436,9 @@ export const tiketRepository = {
       await applyStageEffects(
         id,
         jenis,
-        data.estimasi_nilai ?? existing.estimasi_nilai,
+        data.nilai_dokumen ?? data.estimasi_nilai ?? existing.estimasi_nilai,
         data.status ?? existing.status,
+        data.tanggal_dokumen ?? data.tanggal_penawaran_awal,
       );
       return this.getById(id);
     }

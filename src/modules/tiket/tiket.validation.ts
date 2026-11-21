@@ -19,9 +19,13 @@ export const createTiketSchema = z.object({
   tanggal_penawaran_awal: z.string().nullable().optional(),
   tanggal_closing: z.string().nullable().optional(),
   alasan_lost: z.string().nullable().optional(),
+  tanggal_dokumen: z.string().nullable().optional(),
 });
 
-export const updateTiketSchema = createTiketSchema.partial();
+export const updateTiketSchema = createTiketSchema.partial().extend({
+  create_stage_document: z.boolean().optional(),
+  nilai_dokumen: z.coerce.number().optional(),
+});
 
 export const tiketQuerySchema = paginationQuerySchema.extend({
   sort_by: z

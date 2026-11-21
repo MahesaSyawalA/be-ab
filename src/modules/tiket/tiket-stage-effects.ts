@@ -30,31 +30,50 @@ async function nextDocNumber(prefix: DocPrefix, now: Date): Promise<string> {
  * shortcut: url file kosong sampai evidence diunggah, nomor dokumen urut per bulan tanpa transaksi DB
  * (dua simpan bersamaan bisa bentrok di kolom unik); upgrade bila penulisan harus atomik.
  */
+function resolveDate(val?: string | Date | null): Date {
+  if (!val) return new Date();
+  const parsed = new Date(val);
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+export async function createPenawaranRevision(
+  idTiket: string,
+  nilai: number,
+  options?: { idAktivitas?: string; docDate?: string | Date | null },
+) {
+  const now = new Date();
+  const effectiveDate = resolveDate(options?.docDate);
+  await prisma.tiket.updateMany({
+    where: { id_tiket: idTiket, tanggal_penawaran_awal: null },
+    data: { tanggal_penawaran_awal: effectiveDate },
+  });
+  const revisi = await prisma.penawaran.count({ where: { id_tiket: idTiket } });
+  return prisma.penawaran.create({
+    data: {
+      id_tiket: idTiket,
+      ...(options?.idAktivitas ? { id_aktivitas: options.idAktivitas } : {}),
+      no_penawaran: await nextDocNumber("QUO", now),
+      revisi_ke: revisi,
+      tanggal_penawaran: effectiveDate,
+      total_nilai: nilai,
+      status: "dikirim",
+      url_file_penawaran: "",
+    },
+  });
+}
+
 export async function applyStageEffects(
   idTiket: string,
   jenis: JenisTahap,
   nilai: number,
   statusTiket: "open" | "won" | "lost",
+  docDate?: string | Date | null,
 ): Promise<void> {
   const now = new Date();
+  const effectiveDate = resolveDate(docDate);
 
   if (jenis === "quotation") {
-    await prisma.tiket.updateMany({
-      where: { id_tiket: idTiket, tanggal_penawaran_awal: null },
-      data: { tanggal_penawaran_awal: now },
-    });
-    const revisi = await prisma.penawaran.count({ where: { id_tiket: idTiket } });
-    await prisma.penawaran.create({
-      data: {
-        id_tiket: idTiket,
-        no_penawaran: await nextDocNumber("QUO", now),
-        revisi_ke: revisi,
-        tanggal_penawaran: now,
-        total_nilai: nilai,
-        status: "dikirim",
-        url_file_penawaran: "",
-      },
-    });
+    await createPenawaranRevision(idTiket, nilai, { docDate });
     return;
   }
 
@@ -119,6 +138,52 @@ export async function applyStageEffects(
   }
 }
 
+/**
+ * Saat aktivitas `quotation` dibuat:
+ * - Jika baru saja ada `Penawaran` tanpa `id_aktivitas` (dari pindah tahap / buat tiket di tahap quotation),
+ *   tautkan langsung ke aktivitas ini agar tidak dobel.
+ * - Jika tidak ada (mis. tambah aktivitas revisi di tahap quotation yang sama), buat record `Penawaran` revisi baru.
+ */
+export async function ensurePenawaranForAktivitas(
+  idAktivitas: string,
+  idTiket: string,
+  totalNilai?: number,
+  docDate?: string | Date | null,
+): Promise<void> {
+  const recentThreshold = new Date(Date.now() - 30_000);
+  const unlinkedRecent = await prisma.penawaran.findFirst({
+    where: {
+      id_tiket: idTiket,
+      id_aktivitas: null,
+      created_at: { gte: recentThreshold },
+    },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (unlinkedRecent) {
+    await prisma.penawaran.update({
+      where: { id_penawaran: unlinkedRecent.id_penawaran },
+      data: {
+        id_aktivitas: idAktivitas,
+        ...(totalNilai !== undefined ? { total_nilai: totalNilai } : {}),
+        ...(docDate ? { tanggal_penawaran: resolveDate(docDate) } : {}),
+      },
+    });
+    return;
+  }
+
+  let nilai = totalNilai;
+  if (nilai === undefined) {
+    const tiket = await prisma.tiket.findUnique({
+      where: { id_tiket: idTiket },
+      select: { estimasi_nilai: true },
+    });
+    nilai = Number(tiket?.estimasi_nilai ?? 0);
+  }
+
+  await createPenawaranRevision(idTiket, nilai, { idAktivitas, docDate });
+}
+
 /** Setelah evidence diunggah di aktivitas quotation/po, tautkan file ke dokumen terbaru tiket itu. */
 export async function linkEvidenceToDocument(idAktivitas: string, url: string): Promise<void> {
   const akt = await prisma.aktivitas.findUnique({
@@ -128,7 +193,15 @@ export async function linkEvidenceToDocument(idAktivitas: string, url: string): 
   if (!akt) return;
 
   if (akt.jenis_kegiatan === "quotation") {
-    const p = await prisma.penawaran.findFirst({ where: { id_tiket: akt.id_tiket }, orderBy: { created_at: "desc" } });
+    const p =
+      (await prisma.penawaran.findFirst({
+        where: { id_aktivitas: idAktivitas },
+        orderBy: { created_at: "desc" },
+      })) ??
+      (await prisma.penawaran.findFirst({
+        where: { id_tiket: akt.id_tiket },
+        orderBy: { created_at: "desc" },
+      }));
     if (p) await prisma.penawaran.update({ where: { id_penawaran: p.id_penawaran }, data: { url_file_penawaran: url, id_aktivitas: idAktivitas } });
   } else if (akt.jenis_kegiatan === "po") {
     const po = await prisma.purchaseOrder.findFirst({ where: { id_tiket: akt.id_tiket }, orderBy: { created_at: "desc" } });
