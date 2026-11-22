@@ -1,15 +1,15 @@
-// src/routes/messages.ts
+// src/routes/pusher.ts
 import { Router, type Request, type Response } from "express";
+import { validateBody } from "../common/middleware/validate-body.ts";
 import { pusher } from "../lib/pusher.ts";
+import {
+  createPusherMessageSchema,
+  type CreatePusherMessageBody,
+} from "./pusher.validation.ts";
 
 const router = Router();
 
-interface CreateMessageBody {
-  roomId: string;
-  text: string;
-  user: string;
-  socketId?: string;
-}
+type CreateMessageBody = CreatePusherMessageBody;
 
 interface NewMessageEvent {
   text: string;
@@ -19,7 +19,8 @@ interface NewMessageEvent {
 
 router.post(
   "/messages",
-  async (req: Request<{}, {}, CreateMessageBody>, res: Response) => {
+  validateBody(createPusherMessageSchema),
+  async (req: Request<Record<string, never>, unknown, CreateMessageBody>, res: Response) => {
     const { roomId, text, user, socketId } = req.body;
 
     const payload: NewMessageEvent = {

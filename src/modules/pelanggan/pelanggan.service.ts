@@ -1,4 +1,5 @@
 import { HttpError } from "../../common/utils/http-error.ts";
+import { isSafeImageFile } from "../../common/utils/validation.ts";
 import { buildMeta } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
@@ -14,8 +15,11 @@ import type {
 const IMAGE_FOLDER = "pelanggan";
 
 async function storeImage(file: Express.Multer.File): Promise<string> {
-  if (!file.mimetype.startsWith("image/")) {
-    throw new HttpError(400, "File harus berupa gambar.");
+  if (!isSafeImageFile(file.mimetype, file.originalname)) {
+    throw new HttpError(
+      400,
+      "File harus berupa gambar JPG, PNG, WebP, atau GIF (SVG tidak diperbolehkan)."
+    );
   }
   return uploadToR2(file, IMAGE_FOLDER);
 }

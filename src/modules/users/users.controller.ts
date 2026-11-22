@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { userService } from "./users.service.ts";
-import { resetPasswordSchema, userQuerySchema } from "./users.validation.ts";
+import { userQuerySchema } from "./users.validation.ts";
 
 export const usersController = {
     async create(req: Request, res: Response) {
@@ -91,16 +91,7 @@ export const usersController = {
 
     async resetPassword(req: Request, res: Response) {
         const id = req.params.id as string;
-
-        const parsed = resetPasswordSchema.safeParse(req.body);
-        if (!parsed.success) {
-            res.status(400).json({
-                message: parsed.error.issues[0]?.message ?? "Data tidak valid",
-            });
-            return;
-        }
-
-        const user = await userService.resetPassword(id, parsed.data);
+        const user = await userService.resetPassword(id, req.body);
 
         if (!user) {
             res.status(404).json({ message: "User not found." });

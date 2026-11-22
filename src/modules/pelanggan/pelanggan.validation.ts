@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import {
+  optionalString,
+  requiredEmail,
+  requiredNumber,
+  requiredString,
+} from "../../common/utils/validation.ts";
 
 const parseJsonString = (value: unknown) => {
   if (typeof value !== "string") return value;
@@ -12,35 +18,23 @@ const parseJsonString = (value: unknown) => {
 
 const kontakSchema = z.array(
   z.object({
-    nama: z.string().min(1, { message: "Nama kontak wajib diisi" }),
-    jabatan: z.string().min(1, { message: "Jabatan wajib diisi" }),
-    no_telp: z
-      .string()
-      .min(9, { message: "Nomor telepon minimal 9 digit" }),
-    email: z.string().email({ message: "Format email tidak valid" }),
+    nama: requiredString("Nama kontak", 150),
+    jabatan: requiredString("Jabatan", 100),
+    no_telp: requiredString("Nomor telepon", 20, 9),
+    email: requiredEmail("Email", 150),
   }),
-  { message: "Kontak harus berupa array JSON yang valid" },
+  { error: "Kontak harus berupa array JSON yang valid" },
 );
 
 const pelangganBaseSchema = z.object({
-  nama_outlet: z.string().min(1, { message: "Nama outlet wajib diisi" }),
-  tipe_outlet: z.string().min(1, { message: "Tipe outlet wajib diisi/dipilih" }),
-  nama_faskes: z.string().min(1, { message: "Nama faskes wajib diisi" }).optional().nullable(),
-  tipe_faskes: z.string().min(1, { message: "Tipe faskes wajib diisi/dipilih" }).optional().nullable(),
-  alamat: z
-    .string()
-    .min(5, { message: "Alamat terlalu pendek, minimal 5 karakter" }),
-  latitude: z.coerce
-    .number({ message: "Latitude harus berupa angka" })
-    .min(-90, { message: "Latitude minimal -90" })
-    .max(90, { message: "Latitude maksimal 90" }),
-  longitude: z.coerce
-    .number({ message: "Longitude harus berupa angka" })
-    .min(-180, { message: "Longitude minimal -180" })
-    .max(180, { message: "Longitude maksimal 180" }),
-  radius_kunjungan: z.coerce
-    .number({ message: "Radius kunjungan harus berupa angka" })
-    .min(1, { message: "Radius kunjungan minimal 1 meter" }),
+  nama_outlet: requiredString("Nama outlet", 150),
+  tipe_outlet: requiredString("Tipe outlet", 50),
+  nama_faskes: optionalString("Nama faskes", 150).nullable(),
+  tipe_faskes: optionalString("Tipe faskes", 50).nullable(),
+  alamat: requiredString("Alamat", 1000, 5),
+  latitude: requiredNumber("Latitude", { min: -90, max: 90 }),
+  longitude: requiredNumber("Longitude", { min: -180, max: 180 }),
+  radius_kunjungan: requiredNumber("Radius kunjungan", { min: 1, max: 100000 }),
   kontak: z.preprocess(parseJsonString, kontakSchema.optional()),
 });
 
@@ -59,8 +53,8 @@ export const updatePelangganSchema = pelangganBaseSchema
   .partial();
 
 export const pelangganQuerySchema = paginationQuerySchema.extend({
-  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
-  tipe_outlet: z.string().trim().min(1, { message: "Tipe outlet tidak boleh kosong" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).max(150).optional(),
+  tipe_outlet: z.string().trim().min(1, { message: "Tipe outlet tidak boleh kosong" }).max(50).optional(),
   status: z
     .enum(["Aktif", "Nonaktif", "Prospek"], {
       message: "Status harus Aktif, Nonaktif, atau Prospek",

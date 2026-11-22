@@ -1,28 +1,36 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import {
+  nonEmptyUpdate,
+  optionalIsoDate,
+  requiredIsoDate,
+  requiredNumber,
+  requiredString,
+  safeHttpUrl,
+} from "../../common/utils/validation.ts";
 
 const statusPurchaseOrder = z.enum(["diterima", "diproses", "selesai", "dibatalkan"], {
-  message: "Pilih status PO yang valid",
+  error: "Status PO wajib dipilih (diterima, diproses, selesai, atau dibatalkan)",
 });
 
 export const createPurchaseOrderSchema = z.object({
   id_penawaran: z.uuid({ message: "ID Penawaran tidak valid" }).nullable().optional(),
-  id_tiket: z.uuid({ message: "ID Tiket tidak valid atau belum dipilih" }),
-  no_po: z.string().min(1, { message: "Nomor PO wajib diisi" }),
-  tanggal_po: z.string().min(1, { message: "Tanggal PO wajib diisi" }),
-  nilai_po: z.coerce.number({ message: "Nilai PO harus berupa angka" }),
+  id_tiket: z.uuid({ error: "ID Tiket wajib diisi dengan format UUID yang valid" }),
+  no_po: requiredString("Nomor PO", 100),
+  tanggal_po: requiredIsoDate("Tanggal PO"),
+  nilai_po: requiredNumber("Nilai PO", { min: 0 }),
   status: statusPurchaseOrder,
-  url_file_po: z.string().min(1, { message: "File PO wajib diupload" }),
-  nilai_revenue: z.coerce.number({ message: "Nilai revenue harus berupa angka" }),
-  tanggal_revenue: z.string().nullable().optional(),
+  url_file_po: safeHttpUrl("URL file PO", 500),
+  nilai_revenue: requiredNumber("Nilai revenue", { min: 0 }),
+  tanggal_revenue: optionalIsoDate("Tanggal revenue").nullable(),
 });
 
-export const updatePurchaseOrderSchema = createPurchaseOrderSchema.partial();
+export const updatePurchaseOrderSchema = nonEmptyUpdate(createPurchaseOrderSchema.partial());
 
 export const purchaseOrderQuerySchema = paginationQuerySchema.extend({
   id_penawaran: z.uuid({ message: "ID Penawaran tidak valid" }).optional(),
   id_tiket: z.uuid({ message: "ID Tiket tidak valid" }).optional(),
-  no_po: z.string().trim().min(1, { message: "Nomor PO tidak boleh kosong" }).optional(),
+  no_po: z.string().trim().min(1, { message: "Nomor PO tidak boleh kosong" }).max(100).optional(),
   status: statusPurchaseOrder.optional(),
-  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).max(150).optional(),
 });

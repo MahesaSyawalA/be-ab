@@ -1,9 +1,23 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
+import { HttpError } from "../../common/utils/http-error.ts";
 import { purchaseOrderService } from "./purchase-order.service.ts";
 import { purchaseOrderQuerySchema } from "./purchase-order.validation.ts";
 
+function handleWriteError(error: unknown, next: NextFunction, res: Response, conflictMessage: string) {
+  if (error instanceof HttpError) {
+    next(error);
+    return;
+  }
+  const code = (error as { code?: string })?.code;
+  if (code === "P2002") {
+    res.status(409).json({ message: conflictMessage });
+    return;
+  }
+  next(error);
+}
+
 export const purchaseOrderController = {
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response, next: NextFunction) {
     try {
       const po = await purchaseOrderService.create(req.body);
 
@@ -11,10 +25,8 @@ export const purchaseOrderController = {
         message: "Purchase Order created successfully.",
         data: po,
       });
-    } catch (error: any) {
-      res.status(409).json({
-        message: error.message || "Failed to create purchase order.",
-      });
+    } catch (error: unknown) {
+      handleWriteError(error, next, res, "Nomor PO sudah digunakan.");
     }
   },
 
@@ -50,7 +62,7 @@ export const purchaseOrderController = {
     });
   },
 
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id as string;
     try {
       const po = await purchaseOrderService.update(id, req.body);
@@ -66,10 +78,8 @@ export const purchaseOrderController = {
         message: "Purchase Order updated successfully.",
         data: po,
       });
-    } catch (error: any) {
-      res.status(409).json({
-        message: error.message || "Failed to update purchase order.",
-      });
+    } catch (error: unknown) {
+      handleWriteError(error, next, res, "Nomor PO sudah digunakan.");
     }
   },
 

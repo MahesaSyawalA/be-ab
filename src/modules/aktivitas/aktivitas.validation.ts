@@ -1,26 +1,33 @@
 ﻿import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import {
+  nonEmptyUpdate,
+  optionalIsoDate,
+  optionalNumber,
+  requiredIsoDate,
+  requiredString,
+} from "../../common/utils/validation.ts";
 
 const jenisKegiatan = z.enum(
   ["visit", "kebutuhan", "opportunity", "follow_up", "quotation", "po", "revenue"],
-  { message: "Pilih salah satu jenis kegiatan yang tersedia" },
+  { error: "Jenis kegiatan wajib dipilih" },
 );
 
 export const createAktivitasSchema = z.object({
-  id_user: z.uuid({ message: "ID User tidak valid atau belum ditemukan" }),
-  id_tiket: z.uuid({ message: "Pilih tiket yang sesuai terlebih dahulu" }),
-  tanggal: z.string().min(1, { message: "Tanggal aktivitas wajib diisi" }),
-  catatan: z.string().min(5, { message: "Catatan terlalu pendek, minimal isi 5 karakter" }),
+  id_user: z.uuid({ error: "ID User wajib diisi dengan format UUID yang valid" }),
+  id_tiket: z.uuid({ error: "ID Tiket wajib diisi dengan format UUID yang valid" }),
+  tanggal: requiredIsoDate("Tanggal aktivitas"),
+  catatan: requiredString("Catatan", 2000, 5),
   jenis_kegiatan: jenisKegiatan,
-  jadwal_follow_up: z.string().nullable().optional(),
-  total_nilai: z.coerce.number().nonnegative().optional(),
+  jadwal_follow_up: optionalIsoDate("Jadwal follow up").nullable(),
+  total_nilai: optionalNumber("Total nilai", { min: 0 }),
 });
 
-export const updateAktivitasSchema = createAktivitasSchema.partial();
+export const updateAktivitasSchema = nonEmptyUpdate(createAktivitasSchema.partial());
 
 export const aktivitasQuerySchema = paginationQuerySchema.extend({
   id_user: z.uuid({ message: "ID User tidak valid" }).optional(),
   id_tiket: z.uuid({ message: "ID Tiket tidak valid" }).optional(),
   jenis_kegiatan: jenisKegiatan.optional(),
-  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).max(150).optional(),
 });

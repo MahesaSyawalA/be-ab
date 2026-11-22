@@ -1,5 +1,11 @@
 import { deleteFromR2, uploadToR2 } from "../../config/storage.ts";
 import { HttpError } from "../../common/utils/http-error.ts";
+import {
+    isSafeAudioFile,
+    isSafeDocumentFile,
+    isSafeImageFile,
+    sanitizeFilename,
+} from "../../common/utils/validation.ts";
 import { buildMeta } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { linkEvidenceToDocument } from "../tiket/tiket-stage-effects.ts";
@@ -14,22 +20,10 @@ import type {
     UploadedFile,
 } from "./evidence.types.ts";
 
-const DOCUMENT_MIMES = new Set([
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "application/vnd.ms-excel",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "application/vnd.ms-powerpoint",
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-    "text/plain",
-    "text/csv",
-]);
-
-const MIME_RULES: Record<Exclude<JenisEvidence, "teks">, (mime: string) => boolean> = {
-    foto: (mime) => mime.startsWith("image/"),
-    audio: (mime) => mime.startsWith("audio/"),
-    dokumen: (mime) => DOCUMENT_MIMES.has(mime),
+const MIME_RULES: Record<Exclude<JenisEvidence, "teks">, (file: UploadedFile) => boolean> = {
+    foto: (file) => isSafeImageFile(file.mimetype, file.originalname),
+    audio: (file) => isSafeAudioFile(file.mimetype, file.originalname),
+    dokumen: (file) => isSafeDocumentFile(file.mimetype, file.originalname),
 };
 
 const CLEARED_FILE: EvidenceFileFields = {
@@ -60,14 +54,14 @@ async function storeFile(idAktivitas: string, tipe: JenisEvidence, file: Uploade
     if (tipe === "teks") {
         throw new HttpError(400, "Evidence bertipe teks tidak boleh disertai file.");
     }
-    if (!MIME_RULES[tipe](file.mimetype)) {
-        throw new HttpError(400, `Format file tidak sesuai untuk tipe ${tipe}.`);
+    if (!MIME_RULES[tipe](file)) {
+        throw new HttpError(400, `Format file tidak sesuai atau tidak diperbolehkan untuk tipe ${tipe}.`);
     }
 
     const url = await uploadToR2(file, `evidence/${idAktivitas}`);
 
     return {
-        nama_file: file.originalname.slice(0, 255),
+        nama_file: sanitizeFilename(file.originalname, 255),
         ukuran_file: formatBytes(file.size),
         url_file: url,
         url_preview: tipe === "foto" ? url : null,

@@ -1,5 +1,7 @@
 import cors from "cors";
 import express from "express";
+import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import { checkOrigin } from "./common/middleware/check-origin.ts";
 import { errorHandler } from "./common/middleware/error-handler.ts";
 import { requireAuth } from "./common/middleware/require-auth.ts";
@@ -25,6 +27,23 @@ import messagesRouter from "./routes/pusher.ts";
 const app = express();
 
 app.set("trust proxy", env.trustProxy);
+app.disable("x-powered-by");
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+const apiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: {
+    message: "Terlalu banyak permintaan. Silakan coba lagi beberapa saat lagi.",
+  },
+});
 
 const corsOptions: cors.CorsOptions = {
   origin: env.corsOrigins,
@@ -34,8 +53,9 @@ const corsOptions: cors.CorsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 app.use(checkOrigin);
+app.use("/api", apiRateLimiter);
 
 app.use("/api", generalRoutes);
 app.use("/api/auth", authRoutes);

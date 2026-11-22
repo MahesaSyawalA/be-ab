@@ -1,14 +1,18 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import {
+  nonEmptyUpdate,
+  requiredString,
+} from "../../common/utils/validation.ts";
 
 export const createNotifikasiSchema = z.object({
-  id_tiket: z.uuid({ message: "ID Tiket tidak valid atau belum dipilih" }),
-  title: z.string().min(1, { message: "Judul notifikasi wajib diisi" }),
+  id_tiket: z.uuid({ error: "ID Tiket wajib diisi dengan format UUID yang valid" }),
+  title: requiredString("Judul notifikasi", 150),
   isRead: z.boolean().optional(),
-  message: z.string().min(1, { message: "Pesan notifikasi tidak boleh kosong" }),
+  message: requiredString("Pesan notifikasi", 2000),
 });
 
-export const updateNotifikasiSchema = createNotifikasiSchema.partial();
+export const updateNotifikasiSchema = nonEmptyUpdate(createNotifikasiSchema.partial());
 
 export const notifikasiQuerySchema = paginationQuerySchema.extend({
   id_tiket: z.uuid({ message: "ID Tiket tidak valid" }).optional(),
@@ -16,5 +20,5 @@ export const notifikasiQuerySchema = paginationQuerySchema.extend({
     .enum(["true", "false"], { message: "isRead harus true atau false" })
     .transform((v) => v === "true")
     .optional(),
-  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).max(150).optional(),
 });

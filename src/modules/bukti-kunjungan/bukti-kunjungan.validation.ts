@@ -1,14 +1,19 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import { requiredNumber } from "../../common/utils/validation.ts";
 
 export const createBuktiKunjunganSchema = z.object({
-  id_aktivitas: z.uuid({ message: "ID Aktivitas tidak valid atau belum dipilih" }),
-  longitude: z.coerce.number({ message: "Longitude harus berupa angka" }),
-  latitude: z.coerce.number({ message: "Latitude harus berupa angka" }),
-  jarak_klien: z.coerce.number({ message: "Jarak harus berupa angka" }),
-  dalam_radius: z.enum(["true", "false"], { message: "Status radius wajib diisi dengan format yang benar" }).transform((v) => v === "true"),
-  // img_url: z.string().min(1, { message: "Bukti foto kunjungan wajib diupload" }),
-  // file_url: z.string().optional(),
+  id_aktivitas: z.uuid({
+    error: "ID Aktivitas wajib diisi dengan format UUID yang valid",
+  }),
+  longitude: requiredNumber("Longitude", { min: -180, max: 180 }),
+  latitude: requiredNumber("Latitude", { min: -90, max: 90 }),
+  jarak_klien: requiredNumber("Jarak klien", { min: 0 }),
+  dalam_radius: z
+    .enum(["true", "false"], {
+      error: "Status radius wajib diisi (true atau false)",
+    })
+    .transform((v) => v === "true"),
 });
 
 export const updateBuktiKunjunganSchema = createBuktiKunjunganSchema.partial();

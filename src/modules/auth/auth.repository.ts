@@ -23,6 +23,7 @@ export const authRepository = {
       data: {
         password_hash: data.password_hash,
         must_change_password: data.must_change_password,
+        token_version: { increment: 1 },
       },
     });
   },

@@ -1,9 +1,23 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
+import { HttpError } from "../../common/utils/http-error.ts";
 import { penawaranService } from "./penawaran.service.ts";
 import { penawaranQuerySchema } from "./penawaran.validation.ts";
 
+function handleWriteError(error: unknown, next: NextFunction, res: Response, conflictMessage: string) {
+  if (error instanceof HttpError) {
+    next(error);
+    return;
+  }
+  const code = (error as { code?: string })?.code;
+  if (code === "P2002") {
+    res.status(409).json({ message: conflictMessage });
+    return;
+  }
+  next(error);
+}
+
 export const penawaranController = {
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response, next: NextFunction) {
     try {
       const penawaran = await penawaranService.create(req.body);
 
@@ -11,10 +25,8 @@ export const penawaranController = {
         message: "Penawaran created successfully.",
         data: penawaran,
       });
-    } catch (error: any) {
-      res.status(409).json({
-        message: error.message || "Failed to create penawaran.",
-      });
+    } catch (error: unknown) {
+      handleWriteError(error, next, res, "Nomor penawaran sudah digunakan.");
     }
   },
 
@@ -50,7 +62,7 @@ export const penawaranController = {
     });
   },
 
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id as string;
     try {
       const penawaran = await penawaranService.update(id, req.body);
@@ -66,10 +78,8 @@ export const penawaranController = {
         message: "Penawaran updated successfully.",
         data: penawaran,
       });
-    } catch (error: any) {
-      res.status(409).json({
-        message: error.message || "Failed to update penawaran.",
-      });
+    } catch (error: unknown) {
+      handleWriteError(error, next, res, "Nomor penawaran sudah digunakan.");
     }
   },
 

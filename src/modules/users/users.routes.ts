@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { usersController } from "./users.controller.ts";
-import { createUserSchema, updateProfileSchema, updateUserSchema } from "./users.validation.ts";
+import { createUserSchema, resetPasswordSchema, updateProfileSchema, updateUserSchema } from "./users.validation.ts";
 import { validateBody } from "../../common/middleware/validate-body.ts";
 import { requireRole } from "../../common/middleware/require-role.ts";
 
@@ -12,7 +12,7 @@ router.patch("/me", validateBody(updateProfileSchema), usersController.updateMe)
 router.get("/:id", usersController.getById);
 router.put("/:id", requireRole("director", "admin"), validateBody(updateUserSchema), usersController.update);
 router.patch("/:id", requireRole("director", "admin"), validateBody(updateUserSchema), usersController.update);
-router.post("/:id/reset-password", requireRole("director", "admin"), usersController.resetPassword);
+router.post("/:id/reset-password", requireRole("director", "admin"), validateBody(resetPasswordSchema), usersController.resetPassword);
 router.delete("/:id", requireRole("director", "admin"), usersController.delete);
 
 export default router;

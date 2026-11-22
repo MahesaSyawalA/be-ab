@@ -105,7 +105,14 @@ export const authController = {
     const { current_password, new_password } = req.body as ChangePasswordInput;
   
     const updatedUser = await authService.changePassword(principal.sub, current_password, new_password);
-  
+
+    const authTime = authService.nowInSeconds();
+    setAuthCookies(res, {
+      accessToken: await authService.signAccessToken(updatedUser),
+      refreshToken: await authService.signRefreshToken(updatedUser, authTime),
+      refreshMaxAgeSec: authService.refreshTokenMaxAgeSec(authTime),
+    });
+
     res.status(200).json({
       message: "Password berhasil diubah.",
       data: authService.toAuthUser(updatedUser),

@@ -1,19 +1,25 @@
 import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
+import {
+  nonEmptyUpdate,
+  optionalString,
+  requiredEmail,
+  requiredString,
+} from "../../common/utils/validation.ts";
 
 export const createKontakSchema = z.object({
-  id_pelanggan: z.uuid({ message: "Pilih pelanggan yang sesuai terlebih dahulu" }),
-  nama: z.string().min(1, { message: "Nama kontak wajib diisi" }),
-  jabatan: z.string().min(1, { message: "Jabatan wajib diisi" }),
-  no_telp: z.string().min(9, { message: "Nomor telepon minimal 9 digit" }),
-  email: z.string().min(1, { message: "Email wajib diisi" }).email({ message: "Format email tidak valid (contoh: user@mail.com)" }),
-  kategori_peran: z.string().optional(),
-  inisial: z.string().optional(),
+  id_pelanggan: z.uuid({ error: "ID Pelanggan wajib diisi dengan format UUID yang valid" }),
+  nama: requiredString("Nama kontak", 150),
+  jabatan: requiredString("Jabatan", 100),
+  no_telp: requiredString("Nomor telepon", 20, 9),
+  email: requiredEmail("Email", 150),
+  kategori_peran: optionalString("Kategori peran", 50),
+  inisial: optionalString("Inisial", 10),
 });
 
-export const updateKontakSchema = createKontakSchema.partial();
+export const updateKontakSchema = nonEmptyUpdate(createKontakSchema.partial());
 
 export const kontakQuerySchema = paginationQuerySchema.extend({
   id_pelanggan: z.uuid({ message: "ID Pelanggan tidak valid" }).optional(),
-  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).optional(),
+  search: z.string().trim().min(1, { message: "Search tidak boleh kosong" }).max(150).optional(),
 });
