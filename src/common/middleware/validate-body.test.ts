@@ -99,4 +99,38 @@ describe("validateBody middleware", () => {
     expect(next).toHaveBeenCalledTimes(1);
     expect(req.body).toEqual({ nama: "Produk Medis", jumlah: 10 });
   });
+
+  it("menolak body {} tanpa file saat requireBodyOrFile aktif", () => {
+    const partialSchema = sampleSchema.partial();
+    const req = { body: {} } as Request;
+    const res = createMockRes();
+    const next = vi.fn() as unknown as NextFunction;
+
+    validateBody(partialSchema, { requireBodyOrFile: true })(
+      req,
+      res as unknown as Response,
+      next
+    );
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("mengizinkan body {} bila ada file upload saat requireBodyOrFile aktif", () => {
+    const partialSchema = sampleSchema.partial();
+    const req = {
+      body: {},
+      file: { originalname: "foto.jpg" } as Express.Multer.File,
+    } as Request;
+    const res = createMockRes();
+    const next = vi.fn() as unknown as NextFunction;
+
+    validateBody(partialSchema, { requireBodyOrFile: true })(
+      req,
+      res as unknown as Response,
+      next
+    );
+
+    expect(next).toHaveBeenCalledTimes(1);
+  });
 });

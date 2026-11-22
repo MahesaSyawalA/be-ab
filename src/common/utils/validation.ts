@@ -4,6 +4,30 @@ import { z } from "zod";
 const DANGEROUS_HTML_REGEX =
   /<\s*\/?\s*(script|iframe|object|embed|svg|style|link|meta|form|base|applet|body|html)\b|on[a-z]+\s*=|javascript\s*:|vbscript\s*:|data\s*:\s*text\/html/i;
 
+// Karakter tak terlihat / zero-width / blank filler yang tidak dibersihkan oleh .trim() standar
+const INVISIBLE_CHARS_REGEX =
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180E\u200B-\u200F\u202A-\u202E\u2060-\u206F\u2800\u3164\uFEFF\uFFA0]/g;
+
+export function stripInvisibleChars(value: string): string {
+  return value.replace(INVISIBLE_CHARS_REGEX, "").trim();
+}
+
+function preprocessTextInput(val: unknown): unknown {
+  if (typeof val === "string") {
+    return stripInvisibleChars(val);
+  }
+  return val;
+}
+
+function preprocessOptionalTextInput(val: unknown): unknown {
+  if (val === undefined) return undefined;
+  if (typeof val === "string") {
+    const cleaned = stripInvisibleChars(val);
+    return cleaned === "" ? undefined : cleaned;
+  }
+  return val;
+}
+
 export function hasDangerousXssPattern(value: string): boolean {
   return DANGEROUS_HTML_REGEX.test(value);
 }
@@ -32,9 +56,12 @@ export function requiredString(
     });
   }
 
-  return schema.refine((val) => !hasDangerousXssPattern(val), {
-    message: xssErrorMessage(label),
-  });
+  return z.preprocess(
+    preprocessTextInput,
+    schema.refine((val) => !hasDangerousXssPattern(val), {
+      message: xssErrorMessage(label),
+    })
+  );
 }
 
 export function optionalString(label: string, maxLength?: number) {
@@ -46,20 +73,26 @@ export function optionalString(label: string, maxLength?: number) {
     });
   }
 
-  return schema
-    .refine((val) => !hasDangerousXssPattern(val), {
-      message: xssErrorMessage(label),
-    })
-    .optional();
+  return z.preprocess(
+    preprocessOptionalTextInput,
+    schema
+      .refine((val) => !hasDangerousXssPattern(val), {
+        message: xssErrorMessage(label),
+      })
+      .optional()
+  );
 }
 
 export function requiredEmail(label = "Email", maxLength = 150) {
-  return z
-    .string({ error: `${label} wajib diisi` })
-    .trim()
-    .min(1, { message: `${label} wajib diisi` })
-    .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
-    .email({ message: `Format ${label.toLowerCase()} tidak valid` });
+  return z.preprocess(
+    preprocessTextInput,
+    z
+      .string({ error: `${label} wajib diisi` })
+      .trim()
+      .min(1, { message: `${label} wajib diisi` })
+      .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
+      .email({ message: `Format ${label.toLowerCase()} tidak valid` })
+  );
 }
 
 export function isSafeHttpUrl(value: string): boolean {
@@ -72,25 +105,31 @@ export function isSafeHttpUrl(value: string): boolean {
 }
 
 export function safeHttpUrl(label: string, maxLength = 500) {
-  return z
-    .string({ error: `${label} wajib diisi` })
-    .trim()
-    .min(1, { message: `${label} wajib diisi` })
-    .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
-    .refine(isSafeHttpUrl, {
-      message: `${label} harus berupa URL http/https yang valid`,
-    });
+  return z.preprocess(
+    preprocessTextInput,
+    z
+      .string({ error: `${label} wajib diisi` })
+      .trim()
+      .min(1, { message: `${label} wajib diisi` })
+      .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
+      .refine(isSafeHttpUrl, {
+        message: `${label} harus berupa URL http/https yang valid`,
+      })
+  );
 }
 
 export function optionalSafeHttpUrl(label: string, maxLength = 500) {
-  return z
-    .string({ error: `${label} harus berupa teks` })
-    .trim()
-    .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
-    .refine((val) => val === "" || isSafeHttpUrl(val), {
-      message: `${label} harus berupa URL http/https yang valid`,
-    })
-    .optional();
+  return z.preprocess(
+    preprocessOptionalTextInput,
+    z
+      .string({ error: `${label} harus berupa teks` })
+      .trim()
+      .max(maxLength, { message: `${label} maksimal ${maxLength} karakter` })
+      .refine(isSafeHttpUrl, {
+        message: `${label} harus berupa URL http/https yang valid`,
+      })
+      .optional()
+  );
 }
 
 function preprocessNumberInput(val: unknown): unknown {
@@ -163,25 +202,31 @@ function isValidDateString(val: string): boolean {
 }
 
 export function requiredIsoDate(label: string) {
-  return z
-    .string({ error: `${label} wajib diisi` })
-    .trim()
-    .min(1, { message: `${label} wajib diisi` })
-    .max(50, { message: `${label} tidak valid` })
-    .refine(isValidDateString, {
-      message: `Format ${label.toLowerCase()} tidak valid`,
-    });
+  return z.preprocess(
+    preprocessTextInput,
+    z
+      .string({ error: `${label} wajib diisi` })
+      .trim()
+      .min(1, { message: `${label} wajib diisi` })
+      .max(50, { message: `${label} tidak valid` })
+      .refine(isValidDateString, {
+        message: `Format ${label.toLowerCase()} tidak valid`,
+      })
+  );
 }
 
 export function optionalIsoDate(label: string) {
-  return z
-    .string({ error: `${label} harus berupa teks tanggal` })
-    .trim()
-    .max(50, { message: `${label} tidak valid` })
-    .refine((val) => val === "" || isValidDateString(val), {
-      message: `Format ${label.toLowerCase()} tidak valid`,
-    })
-    .optional();
+  return z.preprocess(
+    preprocessOptionalTextInput,
+    z
+      .string({ error: `${label} harus berupa teks tanggal` })
+      .trim()
+      .max(50, { message: `${label} tidak valid` })
+      .refine(isValidDateString, {
+        message: `Format ${label.toLowerCase()} tidak valid`,
+      })
+      .optional()
+  );
 }
 
 export function nonEmptyUpdate<T extends z.ZodRawShape>(

@@ -9,8 +9,8 @@ const router = Router();
 router.post("/", uploadSingle("file"), validateBody(createEvidenceSchema), evidenceController.create);
 router.get("/", evidenceController.getAll);
 router.get("/:id", evidenceController.getById);
-router.put("/:id", uploadSingle("file"), validateBody(updateEvidenceSchema), evidenceController.update);
-router.patch("/:id", uploadSingle("file"), validateBody(updateEvidenceSchema), evidenceController.update);
+router.put("/:id", uploadSingle("file"), validateBody(updateEvidenceSchema, { requireBodyOrFile: true }), evidenceController.update);
+router.patch("/:id", uploadSingle("file"), validateBody(updateEvidenceSchema, { requireBodyOrFile: true }), evidenceController.update);
 router.delete("/:id", evidenceController.delete);
 
 export default router;

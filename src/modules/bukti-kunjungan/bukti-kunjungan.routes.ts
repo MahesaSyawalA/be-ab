@@ -9,8 +9,8 @@ const router = Router();
 router.get("/", buktiKunjunganController.getAll);
 router.get("/:id", buktiKunjunganController.getById);
 router.delete("/:id", buktiKunjunganController.delete);
-router.patch("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
+router.patch("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema, { requireBodyOrFile: true }), buktiKunjunganController.update);
 router.post("/", buktiKunjunganUpload, validateBody(createBuktiKunjunganSchema), buktiKunjunganController.create);
-router.put("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema), buktiKunjunganController.update);
+router.put("/:id", buktiKunjunganUpload, validateBody(updateBuktiKunjunganSchema, { requireBodyOrFile: true }), buktiKunjunganController.update);
 
 export default router;

@@ -125,6 +125,25 @@ describe("Security & Validation Audit Suite (BE)", () => {
       });
       expect(result.success).toBe(false);
     });
+
+    it("menolak karakter tak terlihat (zero-width / Hangul filler / Braille blank)", () => {
+      const result = createUserSchema.safeParse({
+        nama: "\u200B\u200C\u3164\u2800",
+        role: "sales",
+        email: "sales@example.com",
+        no_telp: "\u200B\uFEFF",
+        password: "Password123!",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("menolak update hanya dengan string kosong / karakter tak terlihat pada field opsional", () => {
+      expect(updateKontakSchema.safeParse({ kategori_peran: "" }).success).toBe(false);
+      expect(updateKontakSchema.safeParse({ kategori_peran: "   " }).success).toBe(false);
+      expect(updateKontakSchema.safeParse({ inisial: "\u200B\u3164" }).success).toBe(false);
+      expect(updateTiketSchema.safeParse({ alasan_lost: "   " }).success).toBe(false);
+      expect(updateUserSchema.safeParse({ nama: "" }).success).toBe(false);
+    });
   });
 
   describe("Validasi File Upload (Blokir SVG/HTML/JS)", () => {
