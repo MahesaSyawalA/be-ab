@@ -10,19 +10,71 @@ import type {
   UpdatePelangganData,
 } from "./pelanggan.types.ts";
 
+function formatRupiah(amount: number): string {
+  return `Rp ${amount.toLocaleString("id-ID")}`;
+}
+
 function mapToPelangganWithDetails(p: any): PelangganWithDetails {
   const nama = p.nama_outlet ?? p.nama_faskes ?? "";
   const tipe = p.tipe_outlet ?? p.tipe_faskes ?? "";
+
+  let total_kunjungan = 0;
+  let total_estimasi = 0;
+
+  if (Array.isArray(p.tiket)) {
+    p.tiket.forEach((t: any) => {
+      if (t.estimasi_nilai) {
+        total_estimasi += Number(t.estimasi_nilai);
+      }
+      if (Array.isArray(t.aktivitas)) {
+        t.aktivitas.forEach((a: any) => {
+          if (a.jenis_kegiatan === "kunjungan") {
+            total_kunjungan += 1;
+          } else if (a.bukti_kunjungan && a.bukti_kunjungan.length > 0) {
+            total_kunjungan += a.bukti_kunjungan.length;
+          }
+        });
+      }
+    });
+  }
+
+  const activeTicketCount =
+    p._count?.tiket ?? (Array.isArray(p.tiket) ? p.tiket.length : 0);
+
   return {
     ...p,
     nama_outlet: nama,
     tipe_outlet: tipe,
     nama_faskes: nama,
     tipe_faskes: tipe,
-    tiket_aktif: p._count?.tiket ?? 0,
+    tiket_aktif: activeTicketCount,
+    total_kunjungan,
+    estimasi_nilai: formatRupiah(total_estimasi),
     kontak_list: p.kontak ?? [],
   };
 }
+
+const customerInclude = {
+  kontak: true,
+  tiket: {
+    select: {
+      id_tiket: true,
+      estimasi_nilai: true,
+      aktivitas: {
+        select: {
+          id_aktivitas: true,
+          jenis_kegiatan: true,
+          bukti_kunjungan: {
+            select: { id_bukti: true },
+          },
+        },
+      },
+    },
+  },
+  _count: {
+    select: { tiket: true },
+  },
+} as const;
 
 export const pelangganRepository = {
   async create(data: CreatePelangganData): Promise<PelangganWithDetails> {
@@ -51,12 +103,7 @@ export const pelangganRepository = {
             },
           }),
       },
-      include: {
-        kontak: true,
-        _count: {
-          select: { tiket: true },
-        },
-      },
+      include: customerInclude,
     });
 
     return mapToPelangganWithDetails(created);
@@ -80,12 +127,7 @@ export const pelangganRepository = {
     const [list, total] = await prisma.$transaction([
       prisma.pelanggan.findMany({
         where,
-        include: {
-          kontak: true,
-          _count: {
-            select: { tiket: true },
-          },
-        },
+        include: customerInclude,
         orderBy: [{ created_at: pagination.order }, { id_pelanggan: "asc" }],
         ...toSkipTake(pagination),
       }),
@@ -98,12 +140,7 @@ export const pelangganRepository = {
   async getById(id: string): Promise<PelangganWithDetails | null> {
     const p = await prisma.pelanggan.findUnique({
       where: { id_pelanggan: id },
-      include: {
-        kontak: true,
-        _count: {
-          select: { tiket: true },
-        },
-      },
+      include: customerInclude,
     });
 
     if (!p) return null;
@@ -136,12 +173,7 @@ export const pelangganRepository = {
         }),
         ...(data.img_url !== undefined && { img_url: data.img_url }),
       },
-      include: {
-        kontak: true,
-        _count: {
-          select: { tiket: true },
-        },
-      },
+      include: customerInclude,
     });
 
     return mapToPelangganWithDetails(updated);
