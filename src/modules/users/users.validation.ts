@@ -2,7 +2,6 @@ import { z } from "zod";
 import { paginationQuerySchema } from "../../common/pagination/pagination.schema.ts";
 import {
   nonEmptyUpdate,
-  optionalString,
   requiredString,
 } from "../../common/utils/validation.ts";
 
@@ -31,10 +30,7 @@ export const createUserSchema = z.object({
 export const updateUserSchema = nonEmptyUpdate(
   z.object({
     id_squad: z.uuidv4({ message: "ID Squad tidak valid" }).nullable().optional(),
-    nama: optionalString("Nama", 100).refine(
-      (val) => val === undefined || val.length > 0,
-      { message: "Nama tidak boleh kosong" }
-    ),
+    nama: requiredString("Nama", 100).optional(),
     role: z
       .enum(["sales", "sales_manager", "director", "admin"], {
         error: "Role tidak valid",
@@ -47,10 +43,7 @@ export const updateUserSchema = nonEmptyUpdate(
       .toLowerCase()
       .pipe(z.email({ message: "Format email tidak valid" }))
       .optional(),
-    no_telp: optionalString("Nomor telepon", 20).refine(
-      (val) => val === undefined || val.length > 0,
-      { message: "Nomor telepon tidak boleh kosong" }
-    ),
+    no_telp: requiredString("Nomor telepon", 20).optional(),
     is_active: z.boolean().optional(),
     biaya_bulanan: z.number().min(0, { message: "Biaya bulanan minimal 0" }).nullable().optional(),
     password: z
@@ -63,14 +56,8 @@ export const updateUserSchema = nonEmptyUpdate(
 
 export const updateProfileSchema = z
   .object({
-    nama: optionalString("Nama", 100).refine(
-      (val) => val === undefined || val.length > 0,
-      { message: "Nama tidak boleh kosong" }
-    ),
-    no_telp: optionalString("Nomor telepon", 20).refine(
-      (val) => val === undefined || val.length > 0,
-      { message: "Nomor telepon tidak boleh kosong" }
-    ),
+    nama: requiredString("Nama", 100).optional(),
+    no_telp: requiredString("Nomor telepon", 20).optional(),
   })
   .refine((data) => data.nama !== undefined || data.no_telp !== undefined, {
     message: "Minimal satu field (nama atau no_telp) harus diisi",
