@@ -97,7 +97,7 @@ model User {
   no_telp            String   @db.VarChar(20)
   password_hash      String   @db.VarChar(255)
   is_active          Boolean  @default(true)
-  must_change_password Boolean @default(false)
+  must_change_password Boolean @default(true)
   token_version      Int      @default(0)
   biaya_bulanan      Decimal? @db.Decimal(18, 2)
   created_at         DateTime @default(now())

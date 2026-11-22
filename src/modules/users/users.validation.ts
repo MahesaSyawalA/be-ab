@@ -25,7 +25,7 @@ export const createUserSchema = z.object({
     .min(8, { message: "Password minimal 8 karakter" })
     .max(72, { message: "Password maksimal 72 karakter" }),
   send_credentials: z.boolean().optional(),
-  must_change_password: z.boolean().optional(),
+  must_change_password: z.boolean().default(true),
 });
 
 export const updateUserSchema = nonEmptyUpdate(

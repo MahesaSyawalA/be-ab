@@ -39,7 +39,7 @@ export const userRepository = {
                 email: data.email,
                 no_telp: data.no_telp,
                 password_hash: data.password_hash,
-                must_change_password: Boolean(data.must_change_password),
+                must_change_password: data.must_change_password !== undefined ? Boolean(data.must_change_password) : true,
             },
             omit: { password_hash: true },
             include: { squad: squadSelect },

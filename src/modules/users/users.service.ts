@@ -20,7 +20,7 @@ export const userService = {
         const { password, send_credentials, ...rest } = data;
         const password_hash = await bcrypt.hash(password, BCRYPT_COST);
 
-        const user = await userRepository.create({ ...rest, password_hash });
+        const user = await userRepository.create({ ...rest, password_hash, must_change_password: rest.must_change_password !== undefined ? rest.must_change_password : true });
         
         if (send_credentials && env.smtpHost) {
             await mailer.sendNewUserCredentials({
