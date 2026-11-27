@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { toSkipTake } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { cycleDays } from "../../common/utils/sales-cycle.ts";
+import { hitungNilaiRevenue } from "../../common/utils/nilai-revenue.ts";
 import { applyStageEffects } from "./tiket-stage-effects.ts";
 import type { JenisTahap } from "../tahap-kanban/tahap-kanban.types.ts";
 import type {
@@ -176,6 +177,7 @@ export function mapToTiketWithDetails(raw: any): TiketWithDetails {
     tanggal_closing: raw.tanggal_closing,
     alasan_lost: raw.alasan_lost,
     jumlah_penawaran: raw._count?.penawaran ?? 0,
+    nilai_revenue: hitungNilaiRevenue(raw.status, raw.tahap?.jenis_tahap, raw.purchase_order ?? [])?.nilai ?? null,
     durasi_siklus_hari: cycleDays(
       (raw.riwayat_tahap ?? []).map((rw: any) => ({
         jenis_tahap: rw.tahap_tujuan?.jenis_tahap,
@@ -439,6 +441,7 @@ export const tiketRepository = {
         data.nilai_dokumen ?? data.estimasi_nilai ?? existing.estimasi_nilai,
         data.status ?? existing.status,
         data.tanggal_dokumen ?? data.tanggal_penawaran_awal,
+        data.nilai_dokumen,
       );
       return this.getById(id);
     }

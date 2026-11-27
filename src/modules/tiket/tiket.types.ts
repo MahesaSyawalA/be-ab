@@ -64,6 +64,8 @@ export interface TiketWithDetails extends Tiket {
   durasi_siklus_hari: number | null;
   /** Jumlah penawaran/revisi yang sudah dibuat; form quotation berikutnya = jumlah + 1. */
   jumlah_penawaran: number;
+  /** Nilai dari PO/realisasi (lihat hitungNilaiRevenue); null sebelum PO atau lost. */
+  nilai_revenue: number | null;
 }
 
 export interface TeamContributionItem {

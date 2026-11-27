@@ -1,5 +1,6 @@
 import { prisma } from "../../config/prisma.ts";
 import { formatDocNumber, type DocPrefix } from "../../common/utils/doc-number.ts";
+import { nilaiRealisasi } from "../../common/utils/nilai-revenue.ts";
 import type { JenisTahap } from "../tahap-kanban/tahap-kanban.types.ts";
 
 /** Nomor berikutnya di bulan berjalan; lompat bila sudah terpakai (kolom no_* unik). */
@@ -68,6 +69,7 @@ export async function applyStageEffects(
   nilai: number,
   statusTiket: "open" | "won" | "lost",
   docDate?: string | Date | null,
+  nilaiDokumen?: number,
 ): Promise<void> {
   const now = new Date();
   const effectiveDate = resolveDate(docDate);
@@ -114,7 +116,7 @@ export async function applyStageEffects(
       orderBy: { created_at: "desc" },
     });
     const status = statusTiket === "lost" ? "dibatalkan" : "selesai";
-    const realisasi = statusTiket === "lost" ? 0 : nilai;
+    const realisasi = nilaiRealisasi(statusTiket, nilaiDokumen, po?.nilai_po, nilai);
     if (po) {
       await prisma.purchaseOrder.update({
         where: { id_po: po.id_po },
