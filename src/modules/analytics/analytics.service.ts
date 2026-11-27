@@ -1,4 +1,5 @@
 import { cycleDays } from "../../common/utils/sales-cycle.ts";
+import { hitungNilaiRevenue, type PoRevenue } from "../../common/utils/nilai-revenue.ts";
 import { analyticsRepository as repo } from "./analytics.repository.ts";
 import type {
   AnalyticsFilters,
@@ -22,6 +23,16 @@ export const roiPersen = (revenue: number, biaya: number | null): number | null 
 /** Biaya sales dihitung proporsional: bulan periode = hari / 30 (minimal 1 bulan). */
 export const periodMonths = (f: Pick<AnalyticsFilters, "from" | "to">): number =>
   Math.max(1, (f.to.getTime() - f.from.getTime()) / MS_PER_DAY / 30);
+
+/** Tiket yang revenue-nya jatuh di periode [from, to). */
+export function revenueDalamPeriode<
+  T extends { status: string; tahap: { jenis_tahap: string }; purchase_order: PoRevenue[] },
+>(tikets: T[], f: Pick<AnalyticsFilters, "from" | "to">): { tiket: T; nilai: number }[] {
+  return tikets.flatMap((tiket) => {
+    const r = hitungNilaiRevenue(tiket.status, tiket.tahap.jenis_tahap, tiket.purchase_order);
+    return r && r.tanggal >= f.from && r.tanggal < f.to ? [{ tiket, nilai: r.nilai }] : [];
+  });
+}
 
 function groupValues<T>(rows: T[], key: (r: T) => string, value: (r: T) => number): Map<string, number[]> {
   const map = new Map<string, number[]>();
@@ -69,11 +80,12 @@ export const analyticsService = {
     const [sales, visits, revenues, won] = await Promise.all([
       repo.getSales(f),
       repo.getVisits(f),
-      repo.getRealizedRevenue(f),
+      repo.getRevenueTikets(f),
       repo.getWonCounts(f),
     ]);
     const kunjungan = groupValues(visits, (v) => v.id_user, () => 1);
-    const revenue = groupValues(revenues, (r) => r.tiket.id_user, (r) => r.nilai_revenue);
+    const rows = revenueDalamPeriode(revenues, f);
+    const revenue = groupValues(rows, (r) => r.tiket.id_user, (r) => r.nilai);
     const wonBy = new Map(won.map((w) => [w.id_user, w._count._all]));
     const months = periodMonths(f);
 
@@ -93,7 +105,8 @@ export const analyticsService = {
       };
     });
 
-    const totalRevenue = sumMoney(items.map((i) => i.revenue));
+    // Total ikut tiket milik siapa pun (mis. director); daftar per orang dan ROI tetap hanya sales aktif.
+    const totalRevenue = sumMoney(rows.map((r) => r.nilai));
     // ROI tim hanya membandingkan revenue sales yang biayanya sudah diisi, agar tidak menggelembung.
     const withBiaya = items.filter((i) => i.biaya !== null);
     const totalBiaya = withBiaya.length ? sumMoney(withBiaya.map((i) => i.biaya as number)) : null;
@@ -110,10 +123,10 @@ export const analyticsService = {
   },
 
   async topSpenders(f: AnalyticsFilters, limit: number): Promise<TopSpenderItem[]> {
-    const pos = await repo.getPurchaseOrders(f);
+    const rows = revenueDalamPeriode(await repo.getRevenueTikets(f), f);
     const byPelanggan = new Map<string, { info: TopSpenderItem; nilai: number[] }>();
-    for (const po of pos) {
-      const p = po.tiket.pelanggan;
+    for (const { tiket, nilai } of rows) {
+      const p = tiket.pelanggan;
       const cur = byPelanggan.get(p.id_pelanggan) ?? {
         info: {
           id_pelanggan: p.id_pelanggan,
@@ -125,7 +138,7 @@ export const analyticsService = {
         nilai: [],
       };
       cur.info.jumlah_po += 1;
-      cur.nilai.push(po.nilai_po);
+      cur.nilai.push(nilai);
       byPelanggan.set(p.id_pelanggan, cur);
     }
     return [...byPelanggan.values()]

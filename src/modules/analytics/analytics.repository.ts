@@ -43,13 +43,6 @@ export const analyticsRepository = {
     });
   },
 
-  getRealizedRevenue(f: AnalyticsFilters) {
-    return prisma.purchaseOrder.findMany({
-      where: { tanggal_revenue: range(f), tiket: tiketWhere(f) },
-      select: { nilai_revenue: true, tiket: { select: { id_user: true } } },
-    });
-  },
-
   getWonCounts(f: AnalyticsFilters) {
     return prisma.tiket.groupBy({
       by: ["id_user"],
@@ -58,12 +51,17 @@ export const analyticsRepository = {
     });
   },
 
-  getPurchaseOrders(f: AnalyticsFilters) {
-    return prisma.purchaseOrder.findMany({
-      where: { tanggal_po: range(f), status: { not: "dibatalkan" }, tiket: tiketWhere(f) },
+  /** Kandidat revenue; nilai dan tanggalnya ditentukan hitungNilaiRevenue. */
+  // shortcut: filter periode dilakukan di JS, pindahkan ke SQL bila tiket tahap po/revenue sudah ribuan.
+  getRevenueTikets(f: AnalyticsFilters) {
+    return prisma.tiket.findMany({
+      where: { ...tiketWhere(f), status: { not: "lost" }, tahap: { jenis_tahap: { in: ["po", "revenue"] } } },
       select: {
-        nilai_po: true,
-        tiket: { select: { pelanggan: { select: { id_pelanggan: true, nama_outlet: true, tipe_outlet: true } } } },
+        id_user: true,
+        status: true,
+        tahap: { select: { jenis_tahap: true } },
+        purchase_order: true,
+        pelanggan: { select: { id_pelanggan: true, nama_outlet: true, tipe_outlet: true } },
       },
     });
   },
