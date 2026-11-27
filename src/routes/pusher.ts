@@ -2,8 +2,11 @@
 import { Router, type Request, type Response } from "express";
 import { validateBody } from "../common/middleware/validate-body.ts";
 import { pusher } from "../lib/pusher.ts";
+import { channelUser } from "../modules/notifikasi/notifikasi.tiket.ts";
 import {
   createPusherMessageSchema,
+  pusherAuthSchema,
+  type PusherAuthBody,
   type CreatePusherMessageBody,
 } from "./pusher.validation.ts";
 
@@ -40,6 +43,16 @@ router.post(
     }
   }
 );
+
+// Otorisasi channel privat: user hanya boleh subscribe channel miliknya sendiri.
+router.post("/auth", validateBody(pusherAuthSchema), (req, res) => {
+  const { socket_id, channel_name } = req.body as PusherAuthBody;
+  if (channel_name !== channelUser(req.user!.sub)) {
+    res.status(403).json({ message: "Tidak boleh mengakses channel ini." });
+    return;
+  }
+  res.status(200).json(pusher.authorizeChannel(socket_id, channel_name));
+});
 
 router.get("/health", async (_req, res) => {
   try {

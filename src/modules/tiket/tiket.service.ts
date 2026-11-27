@@ -1,6 +1,7 @@
 import { buildMeta } from "../../common/pagination/pagination.utils.ts";
 import type { PaginationParams } from "../../common/pagination/pagination.types.ts";
 import { tiketRepository } from "./tiket.repository.ts";
+import { kondisiTiket, notifikasiPerubahanTiket } from "../notifikasi/notifikasi.tiket.ts";
 import type {
   Tiket,
   TiketFilters,
@@ -11,8 +12,10 @@ import type {
 } from "./tiket.types.ts";
 
 export const tiketService = {
-  async create(data: CreateTiketInput): Promise<TiketWithDetails> {
-    return tiketRepository.create(data);
+  async create(data: CreateTiketInput, idPelaku: string): Promise<TiketWithDetails> {
+    const created = await tiketRepository.create(data);
+    await notifikasiPerubahanTiket(created.id_tiket, null, idPelaku);
+    return created;
   },
 
   async getAll(filters: TiketFilters, pagination: PaginationParams, sortBy: TiketSortBy) {
@@ -40,8 +43,11 @@ export const tiketService = {
     return tiketRepository.getByKontakId(idKontak);
   },
 
-  async update(id: string, data: UpdateTiketInput): Promise<TiketWithDetails | null> {
-    return tiketRepository.update(id, data);
+  async update(id: string, data: UpdateTiketInput, idPelaku: string): Promise<TiketWithDetails | null> {
+    const sebelum = await kondisiTiket(id);
+    const updated = await tiketRepository.update(id, data);
+    if (updated && sebelum) await notifikasiPerubahanTiket(id, sebelum, idPelaku);
+    return updated;
   },
 
   async delete(id: string): Promise<Tiket | null> {

@@ -4,7 +4,7 @@ import { tiketQuerySchema } from "./tiket.validation.ts";
 
 export const tiketController = {
   async create(req: Request, res: Response) {
-    const tiket = await tiketService.create(req.body);
+    const tiket = await tiketService.create(req.body, req.user!.sub);
 
     res.status(201).json({
       message: "Tiket created successfully.",
@@ -46,7 +46,7 @@ export const tiketController = {
 
   async update(req: Request, res: Response) {
     const id = req.params.id as string;
-    const tiket = await tiketService.update(id, req.body);
+    const tiket = await tiketService.update(id, req.body, req.user!.sub);
 
     if (!tiket) {
       res.status(404).json({
