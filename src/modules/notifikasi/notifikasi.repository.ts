@@ -13,6 +13,7 @@ export const notifikasiRepository = {
   async create(data: CreateNotifikasiInput): Promise<Notifikasi> {
     return prisma.notifikasi.create({
       data: {
+        id_user: data.id_user,
         id_tiket: data.id_tiket,
         title: data.title,
         isRead: data.isRead ?? false,
@@ -26,6 +27,7 @@ export const notifikasiRepository = {
     pagination: PaginationParams,
   ): Promise<{ items: Notifikasi[]; total: number }> {
     const where: Prisma.NotifikasiWhereInput = {
+      id_user: filters.id_user,
       id_tiket: filters.id_tiket,
       isRead: filters.isRead,
       ...(filters.search && {
@@ -48,10 +50,22 @@ export const notifikasiRepository = {
     return { items, total };
   },
 
-  async getById(id: string): Promise<Notifikasi | null> {
-    return prisma.notifikasi.findUnique({
-      where: { id_notifikasi: id },
+  async getById(id: string, idUser: string): Promise<Notifikasi | null> {
+    return prisma.notifikasi.findFirst({
+      where: { id_notifikasi: id, id_user: idUser },
     });
+  },
+
+  async countUnread(idUser: string): Promise<number> {
+    return prisma.notifikasi.count({ where: { id_user: idUser, isRead: false } });
+  },
+
+  async markAllAsRead(idUser: string): Promise<number> {
+    const { count } = await prisma.notifikasi.updateMany({
+      where: { id_user: idUser, isRead: false },
+      data: { isRead: true },
+    });
+    return count;
   },
 
   async getByTiketId(idTiket: string): Promise<Notifikasi[]> {
@@ -61,8 +75,10 @@ export const notifikasiRepository = {
     });
   },
 
-  async markAsRead(id: string): Promise<Notifikasi | null> {
-    const existing = await prisma.notifikasi.findUnique({ where: { id_notifikasi: id } });
+  async markAsRead(id: string, idUser: string): Promise<Notifikasi | null> {
+    const existing = await prisma.notifikasi.findFirst({
+      where: { id_notifikasi: id, id_user: idUser },
+    });
     if (!existing) return null;
 
     return prisma.notifikasi.update({
@@ -71,8 +87,10 @@ export const notifikasiRepository = {
     });
   },
 
-  async update(id: string, data: UpdateNotifikasiInput): Promise<Notifikasi | null> {
-    const existing = await prisma.notifikasi.findUnique({ where: { id_notifikasi: id } });
+  async update(id: string, idUser: string, data: UpdateNotifikasiInput): Promise<Notifikasi | null> {
+    const existing = await prisma.notifikasi.findFirst({
+      where: { id_notifikasi: id, id_user: idUser },
+    });
     if (!existing) return null;
 
     return prisma.notifikasi.update({
@@ -81,8 +99,10 @@ export const notifikasiRepository = {
     });
   },
 
-  async delete(id: string): Promise<Notifikasi | null> {
-    const existing = await prisma.notifikasi.findUnique({ where: { id_notifikasi: id } });
+  async delete(id: string, idUser: string): Promise<Notifikasi | null> {
+    const existing = await prisma.notifikasi.findFirst({
+      where: { id_notifikasi: id, id_user: idUser },
+    });
     if (!existing) return null;
 
     return prisma.notifikasi.delete({

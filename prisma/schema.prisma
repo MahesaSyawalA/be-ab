@@ -108,6 +108,7 @@ model User {
   tiket             Tiket[]
   riwayat_tahap     RiwayatTahap[]
   aktivitas         Aktivitas[]
+  notifikasi        Notifikasi[]
 
   @@map("user")
 }
@@ -316,8 +317,11 @@ model Notifikasi {
   message       String   @db.Text
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  id_user       String?  @db.VarChar(36)
 
   tiket Tiket @relation(fields: [id_tiket], references: [id_tiket], onDelete: Cascade)
+  user  User? @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
 
+  @@index([id_user, created_at])
   @@map("notifikasi")
 }

@@ -9,6 +9,7 @@ export interface Notifikasi {
 }
 
 export interface CreateNotifikasiInput {
+  id_user: string;
   id_tiket: string;
   title: string;
   isRead?: boolean;
@@ -23,6 +24,7 @@ export interface UpdateNotifikasiInput {
 }
 
 export interface NotifikasiFilters {
+  id_user: string;
   id_tiket?: string;
   isRead?: boolean;
   search?: string;
